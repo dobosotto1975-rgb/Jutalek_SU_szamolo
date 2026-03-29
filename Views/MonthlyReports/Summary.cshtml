@@ -1,0 +1,64 @@
+﻿@model MonthlySummaryViewModel
+@{
+    ViewData["Title"] = "Havi összesítő";
+}
+
+<div class="page-header">
+    <h1>Havi összesítő</h1>
+</div>
+
+<section class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Összes tanácsadó</div>
+        <div class="stat-value">@Model.Rows.Count</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Teljes összeg</div>
+        <div class="stat-value">@Model.GrandTotalAmount.ToString("N0") Ft</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Teljes jutalék</div>
+        <div class="stat-value">@Model.GrandTotalCommission.ToString("N0") Ft</div>
+    </div>
+</section>
+
+<section class="panel">
+    @if (Model.Rows.Any())
+    {
+        <div class="table-wrap">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Tanácsadó</th>
+                        <th>Bejegyzések száma</th>
+                        <th>Összes összeg</th>
+                        <th>Összes jutalék</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Rows)
+                    {
+                        <tr>
+                            <td>@item.AdvisorName</td>
+                            <td>@item.ReportCount</td>
+                            <td>@item.TotalAmount.ToString("N0") Ft</td>
+                            <td>@item.TotalCommission.ToString("N0") Ft</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th>Mindösszesen</th>
+                        <th>@Model.Rows.Sum(x => x.ReportCount)</th>
+                        <th>@Model.GrandTotalAmount.ToString("N0") Ft</th>
+                        <th>@Model.GrandTotalCommission.ToString("N0") Ft</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">Még nincs összesíthető adat.</div>
+    }
+</section>

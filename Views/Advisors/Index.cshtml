@@ -1,0 +1,49 @@
+﻿@model List<Advisor>
+@{
+    ViewData["Title"] = "Tanácsadók";
+}
+
+<div class="page-header">
+    <h1>Tanácsadók</h1>
+    <a class="btn-primary" asp-action="Create">Új tanácsadó</a>
+</div>
+
+<section class="panel">
+    @if (Model.Any())
+    {
+        <div class="table-wrap">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Név</th>
+                        <th>Telefon</th>
+                        <th>E-mail</th>
+                        <th>Aktív</th>
+                        <th>Művelet</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td>@item.Phone</td>
+                            <td>@item.Email</td>
+                            <td>@(item.IsActive ? "Igen" : "Nem")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a class="btn-edit-sm" asp-action="Edit" asp-route-id="@item.Id">Szerkesztés</a>
+                                    <a class="btn-danger-sm" asp-action="Delete" asp-route-id="@item.Id">Törlés</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">Még nincs felvitt tanácsadó.</div>
+    }
+</section>

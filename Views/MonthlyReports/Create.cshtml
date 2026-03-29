@@ -1,0 +1,58 @@
+﻿@model MonthlyReport
+@{
+    ViewData["Title"] = "Új havi adat";
+}
+
+<div class="page-header">
+    <h1>Új havi adat rögzítése</h1>
+</div>
+
+<section class="form-card">
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="ModelOnly" class="validation-text"></div>
+
+        <div class="form-grid two-col">
+            <div class="form-group">
+                <label asp-for="AdvisorId"></label>
+                <select asp-for="AdvisorId" asp-items="ViewBag.AdvisorId" class="input-modern">
+                    <option value="">-- válassz tanácsadót --</option>
+                </select>
+                <span asp-validation-for="AdvisorId" class="validation-text"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Year"></label>
+                <input asp-for="Year" class="input-modern" />
+                <span asp-validation-for="Year" class="validation-text"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Month"></label>
+                <input asp-for="Month" class="input-modern" />
+                <span asp-validation-for="Month" class="validation-text"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Amount"></label>
+                <input asp-for="Amount" class="input-modern" />
+                <span asp-validation-for="Amount" class="validation-text"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Commission"></label>
+                <input asp-for="Commission" class="input-modern" />
+                <span asp-validation-for="Commission" class="validation-text"></span>
+            </div>
+
+            <div class="form-group full-width">
+                <label asp-for="Notes"></label>
+                <textarea asp-for="Notes" class="input-modern textarea-modern"></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Mentés</button>
+            <a asp-action="Index" class="btn-secondary">Vissza</a>
+        </div>
+    </form>
+</section>

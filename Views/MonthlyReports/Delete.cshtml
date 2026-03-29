@@ -1,0 +1,29 @@
+﻿@model MonthlyReport
+@{
+    ViewData["Title"] = "Havi adat törlése";
+}
+
+<section class="page-section">
+    <div class="page-card">
+        <h1>Havi adat törlése</h1>
+        <p>Biztosan törölni szeretnéd ezt a rögzített havi adatot?</p>
+
+        <div class="delete-box">
+            <strong>Tanácsadó:</strong> @Model.Advisor?.Name<br />
+            <strong>Év:</strong> @Model.Year<br />
+            <strong>Hónap:</strong> @Model.Month<br />
+            <strong>Termék:</strong> @Model.Product<br />
+            <strong>Állománydíj:</strong> @Model.Amount.ToString("N0") Ft<br />
+            <strong>Jutalék:</strong> @Model.Commission.ToString("N0") Ft<br />
+            <strong>SU:</strong> @Model.Su.ToString("N4")
+        </div>
+
+        <form asp-action="Delete" method="post" onsubmit="return confirm('Biztosan törölni akarod ezt a havi adatot? Ez a művelet nem visszavonható.');">
+            <input type="hidden" asp-for="Id" />
+            <div class="form-actions">
+                <button type="submit" class="btn-danger">Törlés</button>
+                <a asp-action="Index" class="btn-secondary">Mégse</a>
+            </div>
+        </form>
+    </div>
+</section>

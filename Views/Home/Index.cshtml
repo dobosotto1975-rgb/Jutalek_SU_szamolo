@@ -1,0 +1,222 @@
+﻿@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<section class="hero">
+    <div class="hero-content">
+        <span class="badge">Dashboard • Havi összesítő • Tanácsadók</span>
+        <h1>Tanácsadói Dashboard</h1>
+        <p class="lead">
+            Egy modern, bővíthető rendszer tanácsadók és havi eredmények kezelésére.
+        </p>
+
+        <div class="hero-actions">
+            <a class="btn-primary" asp-controller="DataEntry" asp-action="Index">Új adat felvitele</a>
+            <a class="btn-secondary" asp-controller="Advisors" asp-action="Create">Új tanácsadó</a>
+        </div>
+    </div>
+</section>
+
+<section class="panel dashboard-filter-panel">
+    <div class="panel-header">
+        <h2>Dashboard szűrés</h2>
+        <div class="panel-subtitle">
+            Válaszd ki, melyik év és hónap teljesítményét szeretnéd látni.
+        </div>
+    </div>
+
+    <form method="get" asp-controller="Home" asp-action="Index" class="dashboard-filter-form">
+        <div class="dashboard-filter-grid">
+            <div class="form-group">
+                <label for="year">Év</label>
+                <select id="year" name="year" class="input-modern">
+                    @foreach (var item in Model.Years)
+                    {
+                        <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="month">Hónap</label>
+                <select id="month" name="month" class="input-modern">
+                    @foreach (var item in Model.Months)
+                    {
+                        <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group dashboard-filter-button-wrap">
+                <label>&nbsp;</label>
+                <button type="submit" class="btn-primary dashboard-filter-button">Szűrés</button>
+            </div>
+        </div>
+    </form>
+</section>
+
+<section class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Tanácsadók száma</div>
+        <div class="stat-value">@Model.AdvisorCount</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Kiválasztott havi bejegyzések</div>
+        <div class="stat-value">@Model.MonthlyReportCount</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Összes havi összeg</div>
+        <div class="stat-value">@Model.TotalAmount.ToString("N0") Ft</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Kiválasztott havi összeg</div>
+        <div class="stat-value">@Model.CurrentMonthAmount.ToString("N0") Ft</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Összes alap jutalék</div>
+        <div class="stat-value">@Model.TotalCommission.ToString("N0") Ft</div>
+    </div>
+</section>
+
+<section class="panel dashboard-advisors-panel">
+    <div class="panel-header">
+        <h2>Tanácsadók havi teljesítménye</h2>
+        <div class="panel-subtitle">
+            @Model.SelectedYear. @Model.SelectedMonth. hónap • SU sávok: 0–4,49 = alap jutalék, bónusz nélkül • 4,5–8,99 = alap jutalék +20% bónusz • 9-től = alap jutalék +45% bónusz • maximum skála: 20 SU
+        </div>
+    </div>
+
+    @if (Model.AdvisorRows.Any())
+    {
+        <div class="advisor-dashboard-grid">
+            @foreach (var item in Model.AdvisorRows)
+            {
+                var progress = item.ProgressPercent.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+                <div class="advisor-dashboard-card">
+                    <div class="advisor-dashboard-top">
+                        <div>
+                            <div class="advisor-name">@item.AdvisorName</div>
+                            <div class="advisor-status">@item.SuStatusText</div>
+                        </div>
+
+                        <div class="su-gauge-wrap">
+                            <div class="su-gauge"
+                                 style="background: conic-gradient(@item.GaugeColor 0% @progress%, rgba(255,255,255,0.10) @progress% 100%);">
+                                <div class="su-gauge-inner">
+                                    <div class="su-gauge-value">@item.MonthlySu.ToString("N2")</div>
+                                    <div class="su-gauge-label">SU</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="advisor-metrics">
+                        <div class="advisor-metric">
+                            <span class="advisor-metric-label">Havi állománydíj</span>
+                            <span class="advisor-metric-value">@item.MonthlyAmount.ToString("N0") Ft</span>
+                        </div>
+
+                        <div class="advisor-metric">
+                            <span class="advisor-metric-label">Alap jutalék</span>
+                            <span class="advisor-metric-value">@item.BaseCommission.ToString("N0") Ft</span>
+                        </div>
+
+                        <div class="advisor-metric">
+                            <span class="advisor-metric-label">Bónusz</span>
+                            <span class="advisor-metric-value">
+                                @item.BonusAmount.ToString("N0") Ft
+                                <span class="advisor-bonus-percent">(+@item.BonusPercent.ToString("N0")%)</span>
+                            </span>
+                        </div>
+
+                        <div class="advisor-metric advisor-metric-final">
+                            <span class="advisor-metric-label">Végső jutalék</span>
+                            <span class="advisor-metric-value">@item.FinalCommission.ToString("N0") Ft</span>
+                        </div>
+
+                        <div class="advisor-metric">
+                            <span class="advisor-metric-label">SU szint</span>
+                            <span class="advisor-metric-value">@item.MonthlySu.ToString("N4") / 20</span>
+                        </div>
+                    </div>
+
+                    <div class="su-scale-bar">
+                        <div class="su-scale-segment su-scale-gray"></div>
+                        <div class="su-scale-segment su-scale-yellow"></div>
+                        <div class="su-scale-segment su-scale-green"></div>
+                    </div>
+
+                    <div class="su-scale-labels">
+                        <span>0</span>
+                        <span>4,5</span>
+                        <span>9</span>
+                        <span>20</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">Ebben a hónapban még nincs megjeleníthető adat.</div>
+    }
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h2>Utolsó bevitelek a kiválasztott hónapból</h2>
+    </div>
+
+    @if (Model.LatestReports.Any())
+    {
+        <div class="table-wrap">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Tanácsadó</th>
+                        <th>Év</th>
+                        <th>Hónap</th>
+                        <th>Termék</th>
+                        <th>Összeg</th>
+                        <th>Jutalék</th>
+                        <th>SU</th>
+                        <th>Művelet</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.LatestReports)
+                    {
+                        <tr>
+                            <td>@item.Advisor?.Name</td>
+                            <td>@item.Year</td>
+                            <td>@item.Month</td>
+                            <td>@item.Product</td>
+                            <td>@item.Amount.ToString("N0") Ft</td>
+                            <td>@item.Commission.ToString("N0") Ft</td>
+                            <td>@item.Su.ToString("N4")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a class="btn-edit-sm"
+                                       asp-controller="MonthlyReports"
+                                       asp-action="Edit"
+                                       asp-route-id="@item.Id">Szerkesztés</a>
+
+                                    <a class="btn-danger-sm"
+                                       asp-controller="MonthlyReports"
+                                       asp-action="Delete"
+                                       asp-route-id="@item.Id">Törlés</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">A kiválasztott hónapban még nincs rögzített adat.</div>
+    }
+</section>

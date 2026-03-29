@@ -1,0 +1,181 @@
+﻿@model AdvisorDashboardApp.Models.MonthlyReport
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Adatfelvitel";
+
+    var advisorItems = ViewBag.AdvisorId as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var yearItems = ViewBag.Years as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var monthItems = ViewBag.Months as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var productItems = ViewBag.Products as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="page-header">
+    <h1>Adatfelvitel</h1>
+</div>
+
+<section class="form-card">
+    <form asp-action="Index" method="post">
+        <div asp-validation-summary="ModelOnly" class="validation-text"></div>
+
+        <div class="form-grid two-col">
+            <div class="form-group">
+                <label asp-for="AdvisorId">Tanácsadó</label>
+
+                <select asp-for="AdvisorId" class="input-modern native-hidden-select">
+                    <option value="">-- válassz tanácsadót --</option>
+                    @foreach (var item in advisorItems)
+                    {
+                        <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                    }
+                </select>
+
+                <div class="custom-select" data-target="AdvisorId" data-placeholder="-- válassz tanácsadót --">
+                    <button type="button" class="custom-select-trigger">
+                        <span class="custom-select-text">-- válassz tanácsadót --</span>
+                        <span class="custom-select-arrow">⌄</span>
+                    </button>
+                    <div class="custom-select-dropdown">
+                        <div class="custom-select-search-wrap">
+                            <input type="text" class="custom-select-search" placeholder="Keresés..." />
+                        </div>
+                        <div class="custom-select-options">
+                            @foreach (var item in advisorItems)
+                            {
+                                <button type="button"
+                                        class="custom-select-option"
+                                        data-value="@item.Value"
+                                        data-text="@item.Text">
+                                    @item.Text
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <span asp-validation-for="AdvisorId" class="validation-text"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Year">Év</label>
+
+                <select asp-for="Year" class="input-modern native-hidden-select">
+                    <option value="">-- válassz évet --</option>
+                    @foreach (var item in yearItems)
+                    {
+                        <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                    }
+                </select>
+
+                <div class="custom-select" data-target="Year" data-placeholder="-- válassz évet --">
+                    <button type="button" class="custom-select-trigger">
+                        <span class="custom-select-text">-- válassz évet --</span>
+                        <span class="custom-select-arrow">⌄</span>
+                    </button>
+                    <div class="custom-select-dropdown">
+                        <div class="custom-select-search-wrap">
+                            <input type="text" class="custom-select-search" placeholder="Keresés..." />
+                        </div>
+                        <div class="custom-select-options">
+                            @foreach (var item in yearItems)
+                            {
+                                <button type="button"
+                                        class="custom-select-option"
+                                        data-value="@item.Value"
+                                        data-text="@item.Text">
+                                    @item.Text
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <span asp-validation-for="Year" class="validation-text"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Month">Hónap</label>
+
+                <select asp-for="Month" class="input-modern native-hidden-select">
+                    <option value="">-- válassz hónapot --</option>
+                    @foreach (var item in monthItems)
+                    {
+                        <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                    }
+                </select>
+
+                <div class="custom-select" data-target="Month" data-placeholder="-- válassz hónapot --">
+                    <button type="button" class="custom-select-trigger">
+                        <span class="custom-select-text">-- válassz hónapot --</span>
+                        <span class="custom-select-arrow">⌄</span>
+                    </button>
+                    <div class="custom-select-dropdown">
+                        <div class="custom-select-search-wrap">
+                            <input type="text" class="custom-select-search" placeholder="Keresés..." />
+                        </div>
+                        <div class="custom-select-options">
+                            @foreach (var item in monthItems)
+                            {
+                                <button type="button"
+                                        class="custom-select-option"
+                                        data-value="@item.Value"
+                                        data-text="@item.Text">
+                                    @item.Text
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <span asp-validation-for="Month" class="validation-text"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Product">Termék</label>
+
+                <select asp-for="Product" class="input-modern native-hidden-select">
+                    <option value="">-- válassz terméket --</option>
+                    @foreach (var item in productItems)
+                    {
+                        <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                    }
+                </select>
+
+                <div class="custom-select" data-target="Product" data-placeholder="-- válassz terméket --">
+                    <button type="button" class="custom-select-trigger">
+                        <span class="custom-select-text">-- válassz terméket --</span>
+                        <span class="custom-select-arrow">⌄</span>
+                    </button>
+                    <div class="custom-select-dropdown">
+                        <div class="custom-select-search-wrap">
+                            <input type="text" class="custom-select-search" placeholder="Keresés..." />
+                        </div>
+                        <div class="custom-select-options product-options">
+                            @foreach (var item in productItems)
+                            {
+                                <button type="button"
+                                        class="custom-select-option"
+                                        data-value="@item.Value"
+                                        data-text="@item.Text">
+                                    @item.Text
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <span asp-validation-for="Product" class="validation-text"></span>
+            </div>
+
+            <div class="form-group full-width">
+                <label asp-for="Amount">Állománydíj</label>
+                <input asp-for="Amount" class="input-modern" />
+                <span asp-validation-for="Amount" class="validation-text"></span>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Mentés</button>
+            <a asp-controller="Home" asp-action="Index" class="btn-secondary">Vissza</a>
+        </div>
+    </form>
+</section>

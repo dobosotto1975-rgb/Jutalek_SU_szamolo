@@ -1,0 +1,18 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Hiba";
+}
+
+<section class="page-section">
+    <div class="page-card">
+        <h1>Hiba történt</h1>
+        <p>A kérés feldolgozása során hiba lépett fel.</p>
+
+        @if (Model.ShowRequestId)
+        {
+            <p><strong>Request ID:</strong> <code>@Model.RequestId</code></p>
+        }
+
+        <a class="btn-primary" asp-controller="Home" asp-action="Index">Vissza a főoldalra</a>
+    </div>
+</section>

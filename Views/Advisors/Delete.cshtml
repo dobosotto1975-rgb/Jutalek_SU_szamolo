@@ -1,0 +1,25 @@
+﻿@model Advisor
+@{
+    ViewData["Title"] = "Tanácsadó törlése";
+}
+
+<section class="page-section">
+    <div class="page-card">
+        <h1>Tanácsadó törlése</h1>
+        <p>Biztosan törölni szeretnéd ezt a tanácsadót?</p>
+
+        <div class="delete-box">
+            <strong>@Model.Name</strong><br />
+            @Model.Phone<br />
+            @Model.Email
+        </div>
+
+        <form asp-action="Delete" method="post" onsubmit="return confirm('Biztosan törölni akarod? Ez a művelet nem visszavonható, és a hozzá tartozó havi adatok is törlődhetnek.');">
+            <input type="hidden" asp-for="Id" />
+            <div class="form-actions">
+                <button type="submit" class="btn-danger">Törlés</button>
+                <a asp-action="Index" class="btn-secondary">Mégse</a>
+            </div>
+        </form>
+    </div>
+</section>
