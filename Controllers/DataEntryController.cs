@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using AdvisorDashboardApp.Data;
+﻿using AdvisorDashboardApp.Data;
 using AdvisorDashboardApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -11,55 +10,6 @@ public class DataEntryController : Controller
 {
     private readonly AppDbContext _context;
 
-    private static readonly Dictionary<string, ProductRule> ProductRules = new()
-    {
-        ["Vienna Plan, Age alapdíj, ha a teljes díj 300 e ft alatti fé.,éves"] = new(175000m, 0.35m, "percent"),
-        ["Vienna Plan, Age alapdíj, ha a teljes díj 300 e ft alatti né."] = new(200000m, 0.35m, "percent"),
-        ["Vienna Plan, Age alapdíj, ha a teljes díj 300 e ft alatti havi CSOB"] = new(270000m, 0.35m, "percent"),
-        ["Vienna Plan, Age alapdíj, ha a teljes díj 300 e ft alatti havi átutalás, kártya"] = new(480000m, 0.35m, "percent"),
-
-        ["Vienna Plan, Age alapdíj, ha a teljes díj 300 - 310 e ft között fé.,éves"] = new(145000m, 0.35m, "percent"),
-        ["Vienna Plan, Age alapdíj, ha a teljes díj 300 - 310 e ft között ft alatti né."] = new(170000m, 0.35m, "percent"),
-        ["Vienna Plan, Age alapdíj, ha a teljes díj 300 - 310 e ft között havi CSOB"] = new(220000m, 0.35m, "percent"),
-        ["Vienna Plan, Age alapdíj, ha a teljes díj 300 - 310 e ft között havi átutalás, kártya"] = new(400000m, 0.35m, "percent"),
-
-        ["Vienna Plan, Age alapdíj, ha a teljes díj 310 -410 e ft között  fé.,éves"] = new(145000m, 0.40m, "percent"),
-        ["Vienna Plan, Age alapdíj, ha a teljes díj 310 -410 e ft között né."] = new(170000m, 0.40m, "percent"),
-        ["Vienna Plan, Age alapdíj, ha a teljes díj 310 -410 e ft között havi CSOB"] = new(220000m, 0.40m, "percent"),
-        ["Vienna Plan, Age alapdíj, ha a teljes díj 310 -410 e ft között havi átutalás, kártya"] = new(400000m, 0.40m, "percent"),
-
-        ["Vienna Plan, Age alapdíj, ha a teljes díj minimum  410 e ft fé.,éves"] = new(145000m, 0.45m, "percent"),
-        ["Vienna Plan, Age alapdíj, ha a teljes díj minimum  410 e ft né."] = new(170000m, 0.45m, "percent"),
-        ["Vienna Plan, Age alapdíj, ha a teljes díj minimum  410 e ft havi CSOB"] = new(220000m, 0.45m, "percent"),
-        ["Vienna Plan, Age alapdíj, ha a teljes díj minimum  410 e ft havi átutalás, kártya"] = new(400000m, 0.45m, "percent"),
-
-        ["Vienna Plan, Age ÜK"] = new(720000m, 0.00m, "percent"),
-        ["Életbiztosítási  (UL, YES) kiegészítők"] = new(45000m, 0.75m, "percent"),
-        ["Lakásbiztosítás vagy MFO"] = new(27500m, 0.09m, "percent"),
-        ["Vagyon (Business Class, BC; KKV Felelősség/"] = new(80000m, 0.167m, "percent"),
-        ["KKV Egészségügyi, Rendezvényszervezői Felelősség"] = new(50000m, 0.167m, "percent"),
-        ["KKV Elber, Gépbiztosítás"] = new(80000m, 0.093m, "percent"),
-        ["Egyedi vagyon"] = new(150000m, 0.093m, "percent"),
-        ["Balesetbiztosítás - Menta"] = new(50000m, 0.25m, "percent"),
-
-        ["Vienna Yes alapdíj, ha a teljes díj  120e Ft-ig /állománydíjas/"] = new(60000m, 0.55m, "percent"),
-        ["Vienna Yes alapdíj, ha a teljes díj 120-145e Ft között /állománydíjas/"] = new(60000m, 0.62m, "percent"),
-        ["Vienna Yes alapdíj, ha a teljes díj 145e Ft-tól /állománydíjas/"] = new(60000m, 0.70m, "percent"),
-
-        ["Napnyugta /5év, állománydíj/"] = new(45000m, 0.70m, "percent"),
-        ["Kompakt csoportos élet és baleset"] = new(50000m, 0.14m, "percent"),
-        ["Private-Med Next"] = new(200000m, 0.125m, "percent"),
-        ["CASCO"] = new(100000m, 0.09m, "percent"),
-        ["KGFB"] = new(350000m, 0.0265m, "percent"),
-
-        ["Utas"] = new(120000m, null, "none"),
-        ["Útitárs"] = new(50000m, null, "db"),
-
-        ["Eseti díj"] = new(1000000m, 0.025m, "percent"),
-        ["Eseti díj Plan, Age"] = new(1000000m, 0.0112m, "percent"),
-        ["Eseti díj ÜK"] = new(1000000m, 0.00m, "percent")
-    };
-
     public DataEntryController(AppDbContext context)
     {
         _context = context;
@@ -67,150 +17,211 @@ public class DataEntryController : Controller
 
     public async Task<IActionResult> Index()
     {
-        await LoadDropdownsAsync();
-        LoadRuleJson();
-
-        return View(new MonthlyReport
+        var model = await BuildViewModelAsync(new DataEntryViewModel
         {
             Year = DateTime.Now.Year,
-            Month = DateTime.Now.Month,
-            Commission = 0m,
-            Su = 0m
+            Month = DateTime.Now.Month
         });
+
+        return View(model);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Index(MonthlyReport model)
+    public async Task<IActionResult> Index(DataEntryViewModel model)
     {
-        if (!await _context.Advisors.AnyAsync())
-        {
-            ModelState.AddModelError("", "Előbb vegyél fel legalább egy tanácsadót.");
-        }
-
-        CalculateValues(model);
-
         if (!ModelState.IsValid)
         {
-            await LoadDropdownsAsync(model.AdvisorId, model.Year, model.Month, model.Product);
-            LoadRuleJson();
+            model = await BuildViewModelAsync(model);
             return View(model);
         }
 
-        _context.MonthlyReports.Add(model);
+        var calc = GetProductCalculation(model.Product, model.Amount, model.IsUkContract);
+
+        var report = new MonthlyReport
+        {
+            AdvisorId = model.AdvisorId,
+            Year = model.Year,
+            Month = model.Month,
+            Product = model.Product,
+            Amount = model.Amount,
+            CommissionPercent = calc.CommissionPercent,
+            Divider = calc.Divider,
+            Commission = calc.Commission,
+            Su = calc.Su,
+            IsUkContract = model.IsUkContract
+        };
+
+        _context.MonthlyReports.Add(report);
         await _context.SaveChangesAsync();
 
         TempData["Success"] = "Az adat sikeresen rögzítve lett.";
+
         return RedirectToAction(nameof(Index));
     }
 
-    private void CalculateValues(MonthlyReport model)
-    {
-        model.Commission = 0m;
-        model.Su = 0m;
-
-        if (string.IsNullOrWhiteSpace(model.Product))
-            return;
-
-        if (!ProductRules.TryGetValue(model.Product, out var rule))
-            return;
-
-        if (rule.Divisor > 0)
-        {
-            model.Su = Math.Round(model.Amount / rule.Divisor, 4);
-        }
-
-        if (rule.Mode == "percent" && rule.Percent.HasValue)
-        {
-            model.Commission = Math.Round(model.Amount * rule.Percent.Value, 0);
-        }
-        else if (rule.Mode == "none")
-        {
-            model.Commission = 0m;
-        }
-        else if (rule.Mode == "db")
-        {
-            model.Commission = 0m;
-        }
-    }
-
-    private async Task LoadDropdownsAsync(
-        int? selectedAdvisorId = null,
-        int? selectedYear = null,
-        int? selectedMonth = null,
-        string? selectedProduct = null)
+    private async Task<DataEntryViewModel> BuildViewModelAsync(DataEntryViewModel model)
     {
         var advisors = await _context.Advisors
             .Where(x => x.IsActive)
             .OrderBy(x => x.Name)
             .ToListAsync();
 
-        ViewBag.AdvisorId = new SelectList(advisors, "Id", "Name", selectedAdvisorId);
-
-        var years = new List<SelectListItem>();
-        for (int year = DateTime.Now.Year - 2; year <= DateTime.Now.Year + 3; year++)
-        {
-            years.Add(new SelectListItem
-            {
-                Value = year.ToString(),
-                Text = year.ToString()
-            });
-        }
-
-        ViewBag.Years = new SelectList(
-            years,
-            "Value",
-            "Text",
-            (selectedYear ?? DateTime.Now.Year).ToString()
-        );
-
-        var months = new List<SelectListItem>
-        {
-            new() { Value = "1", Text = "Január" },
-            new() { Value = "2", Text = "Február" },
-            new() { Value = "3", Text = "Március" },
-            new() { Value = "4", Text = "Április" },
-            new() { Value = "5", Text = "Május" },
-            new() { Value = "6", Text = "Június" },
-            new() { Value = "7", Text = "Július" },
-            new() { Value = "8", Text = "Augusztus" },
-            new() { Value = "9", Text = "Szeptember" },
-            new() { Value = "10", Text = "Október" },
-            new() { Value = "11", Text = "November" },
-            new() { Value = "12", Text = "December" }
-        };
-
-        ViewBag.Months = new SelectList(
-            months,
-            "Value",
-            "Text",
-            (selectedMonth ?? DateTime.Now.Month).ToString()
-        );
-
-        var products = ProductRules.Keys
+        model.Advisors = advisors
             .Select(x => new SelectListItem
             {
-                Value = x,
-                Text = x
+                Value = x.Id.ToString(),
+                Text = x.Name,
+                Selected = x.Id == model.AdvisorId
             })
             .ToList();
 
-        ViewBag.Products = new SelectList(products, "Value", "Text", selectedProduct);
-    }
-
-    private void LoadRuleJson()
-    {
-        var jsonReady = ProductRules.ToDictionary(
-            x => x.Key,
-            x => new
+        model.Years = Enumerable.Range(DateTime.Now.Year - 2, 6)
+            .Select(y => new SelectListItem
             {
-                divisor = x.Value.Divisor,
-                percent = x.Value.Percent,
-                mode = x.Value.Mode
-            });
+                Value = y.ToString(),
+                Text = y.ToString(),
+                Selected = y == model.Year
+            })
+            .ToList();
 
-        ViewBag.ProductRulesJson = JsonSerializer.Serialize(jsonReady);
+        var monthNames = new Dictionary<int, string>
+        {
+            [1] = "Január",
+            [2] = "Február",
+            [3] = "Március",
+            [4] = "Április",
+            [5] = "Május",
+            [6] = "Június",
+            [7] = "Július",
+            [8] = "Augusztus",
+            [9] = "Szeptember",
+            [10] = "Október",
+            [11] = "November",
+            [12] = "December"
+        };
+
+        model.Months = monthNames
+            .Select(x => new SelectListItem
+            {
+                Value = x.Key.ToString(),
+                Text = x.Value,
+                Selected = x.Key == model.Month
+            })
+            .ToList();
+
+        var products = GetProducts();
+
+        model.Products = products
+            .Select(x => new SelectListItem
+            {
+                Value = x,
+                Text = x,
+                Selected = x == model.Product
+            })
+            .ToList();
+
+        if (!string.IsNullOrWhiteSpace(model.Product) && model.Amount > 0)
+        {
+            var calc = GetProductCalculation(model.Product, model.Amount, model.IsUkContract);
+            model.CommissionPercent = calc.CommissionPercent;
+            model.Divider = calc.Divider;
+            model.CalculatedCommission = calc.Commission;
+            model.CalculatedSu = calc.Su;
+        }
+
+        return model;
     }
 
-    private sealed record ProductRule(decimal Divisor, decimal? Percent, string Mode);
+    private static (decimal CommissionPercent, decimal Divider, decimal Commission, decimal Su) GetProductCalculation(
+        string product,
+        decimal amount,
+        bool isUkContract)
+    {
+        var rules = GetProductRules();
+
+        if (!rules.ContainsKey(product))
+        {
+            return (0m, 100000m, 0m, 0m);
+        }
+
+        var rule = rules[product];
+        var su = rule.Divider <= 0 ? 0m : Math.Round(amount / rule.Divider, 4);
+
+        var ukOnlyProducts = GetUkQuestionProducts();
+
+        decimal commission = Math.Round(amount * (rule.Percent / 100m), 0);
+
+        if (ukOnlyProducts.Contains(product) && isUkContract)
+        {
+            commission = 0m;
+        }
+
+        return (rule.Percent, rule.Divider, commission, su);
+    }
+
+    private static HashSet<string> GetUkQuestionProducts()
+    {
+        return new HashSet<string>
+        {
+            "Vienna Yes alapdíj, ha a teljes díj  120e Ft-ig /állománydíjas/",
+            "Vienna Yes alapdíj, ha a teljes díj 120-145e Ft között /állománydíjas/",
+            "Vienna Yes alapdíj, ha a teljes díj 145e Ft-tól /állománydíjas/"
+        };
+    }
+
+    private static Dictionary<string, (decimal Percent, decimal Divider)> GetProductRules()
+    {
+        return new Dictionary<string, (decimal Percent, decimal Divider)>
+        {
+            ["Vienna Plan, Age alapdíj, ha a teljes díj 300 e ft alatti fé.,éves"] = (35m, 100000m),
+            ["Vienna Plan, Age alapdíj, ha a teljes díj 300 e ft alatti né."] = (35m, 100000m),
+            ["Vienna Plan, Age alapdíj, ha a teljes díj 300 e ft alatti havi CSOB"] = (35m, 100000m),
+            ["Vienna Plan, Age alapdíj, ha a teljes díj 300 e ft alatti havi átutalás, kártya"] = (35m, 100000m),
+
+            ["Vienna Plan, Age alapdíj, ha a teljes díj 300 - 310 e ft között fé.,éves"] = (35m, 100000m),
+            ["Vienna Plan, Age alapdíj, ha a teljes díj 300 - 310 e ft között ft alatti né."] = (35m, 100000m),
+            ["Vienna Plan, Age alapdíj, ha a teljes díj 300 - 310 e ft között havi CSOB"] = (35m, 100000m),
+            ["Vienna Plan, Age alapdíj, ha a teljes díj 300 - 310 e ft között havi átutalás, kártya"] = (35m, 100000m),
+
+            ["Vienna Plan, Age alapdíj, ha a teljes díj 310 -410 e ft között  fé.,éves"] = (40m, 100000m),
+            ["Vienna Plan, Age alapdíj, ha a teljes díj 310 -410 e ft között né."] = (40m, 100000m),
+            ["Vienna Plan, Age alapdíj, ha a teljes díj 310 -410 e ft között havi CSOB"] = (40m, 100000m),
+            ["Vienna Plan, Age alapdíj, ha a teljes díj 310 -410 e ft között havi átutalás, kártya"] = (40m, 100000m),
+
+            ["Vienna Plan, Age alapdíj, ha a teljes díj minimum  410 e ft fé.,éves"] = (45m, 100000m),
+            ["Vienna Plan, Age alapdíj, ha a teljes díj minimum  410 e ft né."] = (45m, 100000m),
+            ["Vienna Plan, Age alapdíj, ha a teljes díj minimum  410 e ft havi CSOB"] = (45m, 100000m),
+            ["Vienna Plan, Age alapdíj, ha a teljes díj minimum  410 e ft havi átutalás, kártya"] = (45m, 100000m),
+
+            ["Vienna Plan, Age ÜK"] = (0m, 100000m),
+            ["Életbiztosítási  (UL, YES) kiegészítők"] = (75m, 100000m),
+            ["Lakásbiztosítás vagy MFO"] = (9m, 100000m),
+            ["Vagyon (Business Class, BC; KKV Felelősség/"] = (16.7m, 100000m),
+            ["KKV Egészségügyi, Rendezvényszervezői Felelősség"] = (16.7m, 100000m),
+            ["KKV Elber, Gépbiztosítás"] = (9.3m, 100000m),
+            ["Egyedi vagyon"] = (9.3m, 100000m),
+            ["Balesetbiztosítás - Menta"] = (25m, 100000m),
+
+            ["Vienna Yes alapdíj, ha a teljes díj  120e Ft-ig /állománydíjas/"] = (55m, 100000m),
+            ["Vienna Yes alapdíj, ha a teljes díj 120-145e Ft között /állománydíjas/"] = (62m, 100000m),
+            ["Vienna Yes alapdíj, ha a teljes díj 145e Ft-tól /állománydíjas/"] = (70m, 100000m),
+
+            ["Napnyugta /5év, állománydíj/"] = (70m, 100000m),
+            ["Kompakt csoportos élet és baleset"] = (14m, 100000m),
+            ["Private-Med Next"] = (12.5m, 100000m),
+            ["CASCO"] = (9m, 100000m),
+            ["KGFB"] = (2.65m, 100000m),
+            ["Utas"] = (0m, 100000m),
+            ["Útitárs"] = (0m, 50000m),
+            ["Eseti díj"] = (2.5m, 1000000m),
+            ["Eseti díj Plan, Age"] = (1.12m, 1000000m),
+            ["Eseti díj ÜK"] = (0m, 1000000m)
+        };
+    }
+
+    private static List<string> GetProducts()
+    {
+        return GetProductRules().Keys.ToList();
+    }
 }
