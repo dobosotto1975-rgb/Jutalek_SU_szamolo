@@ -196,7 +196,7 @@ public class DataEntryController : Controller
 
             ["Vienna Plan, Age ÜK"] = (0m, 100000m),
             ["Életbiztosítási  (UL, YES) kiegészítők"] = (75m, 100000m),
-            ["Lakásbiztosítás vagy MFO"] = (9m, 100000m),
+            ["Lakásbiztosítás vagy MFO"] = (9m, 27500m),
             ["Vagyon (Business Class, BC; KKV Felelősség/"] = (16.7m, 100000m),
             ["KKV Egészségügyi, Rendezvényszervezői Felelősség"] = (16.7m, 100000m),
             ["KKV Elber, Gépbiztosítás"] = (9.3m, 100000m),
