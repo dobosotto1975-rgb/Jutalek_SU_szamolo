@@ -16,15 +16,21 @@ var renderDatabaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 var postgresConnection = builder.Configuration.GetConnectionString("PostgresConnection");
 var sqliteConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 
+string? finalConnectionString = null;
+
 if (!string.IsNullOrWhiteSpace(renderDatabaseUrl))
 {
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(renderDatabaseUrl));
+    finalConnectionString = BuildRenderPostgresConnectionString(renderDatabaseUrl);
 }
 else if (!string.IsNullOrWhiteSpace(postgresConnection))
 {
+    finalConnectionString = postgresConnection;
+}
+
+if (!string.IsNullOrWhiteSpace(finalConnectionString))
+{
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(postgresConnection));
+        options.UseNpgsql(finalConnectionString));
 }
 else
 {
@@ -60,3 +66,16 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+static string BuildRenderPostgresConnectionString(string databaseUrl)
+{
+    var uri = new Uri(databaseUrl);
+
+    var userInfoParts = uri.UserInfo.Split(':', 2);
+    var username = userInfoParts[0];
+    var password = userInfoParts.Length > 1 ? userInfoParts[1] : "";
+
+    var database = uri.AbsolutePath.TrimStart('/');
+
+    return $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+}
