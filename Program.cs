@@ -4,13 +4,24 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port))
+{
+    builder.WebHost.UseUrls($"http://*:{port}");
+}
+
 builder.Services.AddControllersWithViews();
 
-var usePostgres = builder.Configuration.GetValue<bool>("UsePostgres");
+var renderDatabaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 var postgresConnection = builder.Configuration.GetConnectionString("PostgresConnection");
 var sqliteConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 
-if (usePostgres)
+if (!string.IsNullOrWhiteSpace(renderDatabaseUrl))
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(renderDatabaseUrl));
+}
+else if (!string.IsNullOrWhiteSpace(postgresConnection))
 {
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(postgresConnection));
