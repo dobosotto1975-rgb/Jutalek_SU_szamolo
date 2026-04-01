@@ -125,7 +125,6 @@ I:\AdvisorDashboardApp\AdvisorDashboardApp\obj\Debug\net8.0\staticwebassets.buil
 I:\AdvisorDashboardApp\AdvisorDashboardApp\obj\Debug\net8.0\staticwebassets.development.json
 I:\AdvisorDashboardApp\AdvisorDashboardApp\obj\Debug\net8.0\staticwebassets.build.endpoints.json
 I:\AdvisorDashboardApp\AdvisorDashboardApp\obj\Debug\net8.0\swae.build.ex.cache
-I:\AdvisorDashboardApp\AdvisorDashboardApp\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 I:\AdvisorDashboardApp\AdvisorDashboardApp\obj\Debug\net8.0\AdvisorD.7DE1E7AE.Up2Date
 I:\AdvisorDashboardApp\AdvisorDashboardApp\obj\Debug\net8.0\AdvisorDashboardApp.dll
 I:\AdvisorDashboardApp\AdvisorDashboardApp\obj\Debug\net8.0\refint\AdvisorDashboardApp.dll

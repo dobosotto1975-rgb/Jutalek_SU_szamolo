@@ -8,8 +8,8 @@
     ".NETCoreApp,Version=v8.0": {
       "AdvisorDashboardApp/1.0.0": {
         "dependencies": {
+          "Microsoft.EntityFrameworkCore.Design": "8.0.8",
           "Microsoft.EntityFrameworkCore.Sqlite": "8.0.8",
-          "Microsoft.EntityFrameworkCore.Tools": "8.0.8",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "8.0.8"
         },
         "runtime": {
@@ -316,11 +316,6 @@
             "assemblyVersion": "8.0.8.0",
             "fileVersion": "8.0.824.36704"
           }
-        }
-      },
-      "Microsoft.EntityFrameworkCore.Tools/8.0.8": {
-        "dependencies": {
-          "Microsoft.EntityFrameworkCore.Design": "8.0.8"
         }
       },
       "Microsoft.Extensions.DependencyModel/8.0.1": {
@@ -665,13 +660,6 @@
       "sha512": "sha512-w5k/ENj3+BPbmggqh83RRuPhhKcJmW7CmdJuGwdX1eFrmptJwnzKiHfQCPkJAu9df16PSs5YFeWrDgepfqnltA==",
       "path": "microsoft.entityframeworkcore.sqlite.core/8.0.8",
       "hashPath": "microsoft.entityframeworkcore.sqlite.core.8.0.8.nupkg.sha512"
-    },
-    "Microsoft.EntityFrameworkCore.Tools/8.0.8": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-wjDNbLJk86QpZt2JxJuNVzpBKIbEQsgcJYHGeIFTBuK6NEgvJvyxgneg059HfSJmTVdInZ61lTO4sJGCfFr7+w==",
-      "path": "microsoft.entityframeworkcore.tools/8.0.8",
-      "hashPath": "microsoft.entityframeworkcore.tools.8.0.8.nupkg.sha512"
     },
     "Microsoft.Extensions.DependencyModel/8.0.1": {
       "type": "package",
