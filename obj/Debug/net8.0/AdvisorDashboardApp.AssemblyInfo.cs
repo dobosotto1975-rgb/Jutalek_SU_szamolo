@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AdvisorDashboardApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0578efb95253e15e1dde332ecbac8b01729bd4d5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+82771963cd2bbe2628850faf8a6e0b202bd765d3")]
 [assembly: System.Reflection.AssemblyProductAttribute("AdvisorDashboardApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AdvisorDashboardApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
