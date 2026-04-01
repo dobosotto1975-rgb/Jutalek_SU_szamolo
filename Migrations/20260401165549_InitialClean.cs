@@ -5,7 +5,7 @@
 namespace AdvisorDashboardApp.Migrations
 {
     /// <inheritdoc />
-    public partial class AddUkContractToMonthlyReport : Migration
+    public partial class InitialClean : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,7 +35,7 @@ namespace AdvisorDashboardApp.Migrations
                     AdvisorId = table.Column<int>(type: "INTEGER", nullable: false),
                     Year = table.Column<int>(type: "INTEGER", nullable: false),
                     Month = table.Column<int>(type: "INTEGER", nullable: false),
-                    Product = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Product = table.Column<string>(type: "TEXT", maxLength: 300, nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CommissionPercent = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Divider = table.Column<decimal>(type: "decimal(18,2)", nullable: false),

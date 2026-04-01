@@ -1,6 +1,10 @@
 ﻿@model DashboardViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Dashboard";
+
+    var yearItems = Model.Years ?? Enumerable.Empty<SelectListItem>();
+    var monthItems = Model.Months ?? Enumerable.Empty<SelectListItem>();
 }
 
 <section class="hero">
@@ -30,22 +34,70 @@
         <div class="dashboard-filter-grid">
             <div class="form-group">
                 <label for="year">Év</label>
-                <select id="year" name="year" class="input-modern">
-                    @foreach (var item in Model.Years)
+
+                <select id="year" name="year" class="input-modern native-hidden-select">
+                    @foreach (var item in yearItems)
                     {
                         <option value="@item.Value" selected="@item.Selected">@item.Text</option>
                     }
                 </select>
+
+                <div class="custom-select" data-target="year" data-placeholder="-- válassz évet --">
+                    <button type="button" class="custom-select-trigger">
+                        <span class="custom-select-text">-- válassz évet --</span>
+                        <span class="custom-select-arrow">⌄</span>
+                    </button>
+                    <div class="custom-select-dropdown">
+                        <div class="custom-select-search-wrap">
+                            <input type="text" class="custom-select-search" placeholder="Keresés..." />
+                        </div>
+                        <div class="custom-select-options">
+                            @foreach (var item in yearItems)
+                            {
+                                <button type="button"
+                                        class="custom-select-option"
+                                        data-value="@item.Value"
+                                        data-text="@item.Text">
+                                    @item.Text
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="month">Hónap</label>
-                <select id="month" name="month" class="input-modern">
-                    @foreach (var item in Model.Months)
+
+                <select id="month" name="month" class="input-modern native-hidden-select">
+                    @foreach (var item in monthItems)
                     {
                         <option value="@item.Value" selected="@item.Selected">@item.Text</option>
                     }
                 </select>
+
+                <div class="custom-select" data-target="month" data-placeholder="-- válassz hónapot --">
+                    <button type="button" class="custom-select-trigger">
+                        <span class="custom-select-text">-- válassz hónapot --</span>
+                        <span class="custom-select-arrow">⌄</span>
+                    </button>
+                    <div class="custom-select-dropdown">
+                        <div class="custom-select-search-wrap">
+                            <input type="text" class="custom-select-search" placeholder="Keresés..." />
+                        </div>
+                        <div class="custom-select-options">
+                            @foreach (var item in monthItems)
+                            {
+                                <button type="button"
+                                        class="custom-select-option"
+                                        data-value="@item.Value"
+                                        data-text="@item.Text">
+                                    @item.Text
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="form-group dashboard-filter-button-wrap">

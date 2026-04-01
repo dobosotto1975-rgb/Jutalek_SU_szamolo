@@ -16,13 +16,14 @@
 <section class="form-card">
     <form asp-action="Edit" method="post">
         <input type="hidden" asp-for="Id" />
+
         <div asp-validation-summary="ModelOnly" class="validation-text"></div>
 
         <div class="form-grid two-col">
             <div class="form-group">
                 <label asp-for="AdvisorId">Tanácsadó</label>
 
-                <select asp-for="AdvisorId" class="input-modern native-hidden-select">
+                <select asp-for="AdvisorId" class="input-modern native-hidden-select" id="AdvisorId">
                     <option value="">-- válassz tanácsadót --</option>
                     @foreach (var item in advisorItems)
                     {
@@ -59,7 +60,7 @@
             <div class="form-group">
                 <label asp-for="Year">Év</label>
 
-                <select asp-for="Year" class="input-modern native-hidden-select">
+                <select asp-for="Year" class="input-modern native-hidden-select" id="Year">
                     <option value="">-- válassz évet --</option>
                     @foreach (var item in yearItems)
                     {
@@ -96,7 +97,7 @@
             <div class="form-group">
                 <label asp-for="Month">Hónap</label>
 
-                <select asp-for="Month" class="input-modern native-hidden-select">
+                <select asp-for="Month" class="input-modern native-hidden-select" id="Month">
                     <option value="">-- válassz hónapot --</option>
                     @foreach (var item in monthItems)
                     {
@@ -130,10 +131,10 @@
                 <span asp-validation-for="Month" class="validation-text"></span>
             </div>
 
-            <div class="form-group">
+            <div class="form-group full-width">
                 <label asp-for="Product">Termék</label>
 
-                <select asp-for="Product" class="input-modern native-hidden-select">
+                <select asp-for="Product" class="input-modern native-hidden-select" id="Product">
                     <option value="">-- válassz terméket --</option>
                     @foreach (var item in productItems)
                     {
@@ -167,20 +168,44 @@
                 <span asp-validation-for="Product" class="validation-text"></span>
             </div>
 
+            <div class="form-group" id="ukQuestionWrap" style="display:none;">
+                <label asp-for="IsUkContract">ÜK-san lett megkötve?</label>
+                <select asp-for="IsUkContract" class="input-modern" id="ukSelect">
+                    <option value="false">Nem</option>
+                    <option value="true">Igen</option>
+                </select>
+            </div>
+
             <div class="form-group full-width">
                 <label asp-for="Amount">Állománydíj (Ft)</label>
-                <input asp-for="Amount" class="input-modern calculator-input" />
+                <input asp-for="Amount" class="input-modern calculator-input" id="Amount" type="number" step="0.01" />
                 <span asp-validation-for="Amount" class="validation-text"></span>
             </div>
 
             <div class="form-group">
                 <label asp-for="Commission">Jutalék (Ft)</label>
-                <input asp-for="Commission" class="input-modern calculator-output" readonly />
+                <input asp-for="Commission" class="input-modern calculator-output" id="Commission" readonly />
             </div>
 
             <div class="form-group">
                 <label asp-for="Su">SU</label>
-                <input asp-for="Su" class="input-modern calculator-output" readonly />
+                <input asp-for="Su" class="input-modern calculator-output" id="Su" readonly />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="CommissionPercent">Jutalék %</label>
+                <input asp-for="CommissionPercent" class="input-modern" id="CommissionPercent" readonly />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Divider">Osztó</label>
+                <input asp-for="Divider" class="input-modern" id="Divider" readonly />
+            </div>
+
+            <div class="form-group full-width">
+                <label asp-for="Notes">Megjegyzés</label>
+                <textarea asp-for="Notes" class="input-modern" rows="4"></textarea>
+                <span asp-validation-for="Notes" class="validation-text"></span>
             </div>
         </div>
 
@@ -192,6 +217,8 @@
 </section>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
     <script>
         window.productRules = @Html.Raw(ViewBag.ProductRulesJson ?? "{}");
     </script>

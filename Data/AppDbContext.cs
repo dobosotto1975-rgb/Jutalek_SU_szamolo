@@ -31,7 +31,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<MonthlyReport>()
             .Property(x => x.Product)
-            .HasMaxLength(100)
+            .HasMaxLength(300)
             .IsRequired();
 
         modelBuilder.Entity<MonthlyReport>()

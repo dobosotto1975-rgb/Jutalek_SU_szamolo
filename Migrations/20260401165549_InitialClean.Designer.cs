@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AdvisorDashboardApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260329131831_AddUkContractToMonthlyReport")]
-    partial class AddUkContractToMonthlyReport
+    [Migration("20260401165549_InitialClean")]
+    partial class InitialClean
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -79,7 +79,7 @@ namespace AdvisorDashboardApp.Migrations
 
                     b.Property<string>("Product")
                         .IsRequired()
-                        .HasMaxLength(100)
+                        .HasMaxLength(300)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Su")

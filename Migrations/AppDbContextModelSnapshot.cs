@@ -76,7 +76,7 @@ namespace AdvisorDashboardApp.Migrations
 
                     b.Property<string>("Product")
                         .IsRequired()
-                        .HasMaxLength(100)
+                        .HasMaxLength(300)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Su")
