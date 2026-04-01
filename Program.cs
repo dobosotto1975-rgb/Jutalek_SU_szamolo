@@ -26,8 +26,12 @@ else if (!string.IsNullOrWhiteSpace(postgresConnection))
 {
     finalConnectionString = postgresConnection;
 }
+else
+{
+    finalConnectionString = sqliteConnection;
+}
 
-if (!string.IsNullOrWhiteSpace(finalConnectionString))
+if (!string.IsNullOrWhiteSpace(renderDatabaseUrl) || !string.IsNullOrWhiteSpace(postgresConnection))
 {
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(finalConnectionString));
@@ -35,7 +39,7 @@ if (!string.IsNullOrWhiteSpace(finalConnectionString))
 else
 {
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlite(sqliteConnection));
+        options.UseSqlite(finalConnectionString));
 }
 
 builder.Services.AddScoped<IProductCalculationService, ProductCalculationService>();
@@ -72,10 +76,11 @@ static string BuildRenderPostgresConnectionString(string databaseUrl)
     var uri = new Uri(databaseUrl);
 
     var userInfoParts = uri.UserInfo.Split(':', 2);
-    var username = userInfoParts[0];
-    var password = userInfoParts.Length > 1 ? userInfoParts[1] : "";
+    var username = userInfoParts.Length > 0 ? Uri.UnescapeDataString(userInfoParts[0]) : "";
+    var password = userInfoParts.Length > 1 ? Uri.UnescapeDataString(userInfoParts[1]) : "";
 
     var database = uri.AbsolutePath.TrimStart('/');
+    var dbPort = uri.Port > 0 ? uri.Port : 5432;
 
-    return $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+    return $"Host={uri.Host};Port={dbPort};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
 }
