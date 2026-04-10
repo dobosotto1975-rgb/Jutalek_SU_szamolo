@@ -1,12 +1,13 @@
 using AdvisorDashboardApp.Data;
 using AdvisorDashboardApp.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 Console.WriteLine("=== APP STARTING ===");
 
-// PORT kezelés (Render)
+// PORT kezelés
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))
 {
@@ -15,8 +16,7 @@ if (!string.IsNullOrWhiteSpace(port))
 }
 else
 {
-    Console.WriteLine("PORT not found, fallback to 10000");
-    builder.WebHost.UseUrls("http://*:10000");
+    Console.WriteLine("PORT not found, using local defaults from launchSettings or ASP.NET.");
 }
 
 builder.Services.AddControllersWithViews();
@@ -26,40 +26,43 @@ var renderDatabaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 var postgresConnection = builder.Configuration.GetConnectionString("PostgresConnection");
 var sqliteConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 
-string? finalConnectionString = null;
+string finalConnectionString;
+bool usePostgres;
 
 try
 {
     if (!string.IsNullOrWhiteSpace(renderDatabaseUrl))
     {
-        Console.WriteLine("Using DATABASE_URL from Render");
+        Console.WriteLine("Using DATABASE_URL from environment.");
         finalConnectionString = BuildRenderPostgresConnectionString(renderDatabaseUrl);
+        usePostgres = true;
     }
     else if (!string.IsNullOrWhiteSpace(postgresConnection))
     {
-        Console.WriteLine("Using PostgresConnection from appsettings");
+        Console.WriteLine("Using PostgresConnection from configuration.");
         finalConnectionString = postgresConnection;
+        usePostgres = true;
+    }
+    else if (!string.IsNullOrWhiteSpace(sqliteConnection))
+    {
+        Console.WriteLine("Using SQLite fallback.");
+        finalConnectionString = sqliteConnection;
+        usePostgres = false;
     }
     else
     {
-        Console.WriteLine("Using SQLite fallback");
-        finalConnectionString = sqliteConnection;
+        throw new Exception("No valid connection string was found.");
     }
 }
 catch (Exception ex)
 {
     Console.WriteLine("!!! CONNECTION STRING ERROR !!!");
-    Console.WriteLine(ex.ToString());
+    Console.WriteLine(ex);
     throw;
 }
 
-if (string.IsNullOrWhiteSpace(finalConnectionString))
-{
-    throw new Exception("No valid connection string was found.");
-}
-
 // DB konfiguráció
-if (!string.IsNullOrWhiteSpace(renderDatabaseUrl) || !string.IsNullOrWhiteSpace(postgresConnection))
+if (usePostgres)
 {
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(finalConnectionString));
@@ -72,25 +75,36 @@ else
 
 builder.Services.AddScoped<IProductCalculationService, ProductCalculationService>();
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto;
+
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
 Console.WriteLine("=== BUILD OK ===");
 
+// Forwarded headers a proxy mögötti korrekt HTTPS kezeléshez
+app.UseForwardedHeaders();
+
 // SAFE MIGRATION
 try
 {
-    using (var scope = app.Services.CreateScope())
-    {
-        Console.WriteLine("=== DB MIGRATION START ===");
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Database.Migrate();
-        Console.WriteLine("=== DB MIGRATION OK ===");
-    }
+    using var scope = app.Services.CreateScope();
+    Console.WriteLine("=== DB MIGRATION START ===");
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+    Console.WriteLine("=== DB MIGRATION OK ===");
 }
 catch (Exception ex)
 {
     Console.WriteLine("!!! MIGRATION ERROR (APP STILL RUNS) !!!");
-    Console.WriteLine(ex.ToString());
+    Console.WriteLine(ex);
 }
 
 if (!app.Environment.IsDevelopment())

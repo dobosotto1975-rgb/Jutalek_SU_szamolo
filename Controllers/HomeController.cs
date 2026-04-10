@@ -28,17 +28,20 @@ public class HomeController : Controller
             .OrderBy(x => x.Name)
             .ToListAsync();
 
-        var filteredReportsQuery = _context.MonthlyReports
+        var filteredReports = await _context.MonthlyReports
             .AsNoTracking()
-            .Where(x => x.Year == selectedYear && x.Month == selectedMonth);
+            .Where(x => x.Year == selectedYear && x.Month == selectedMonth)
+            .ToListAsync();
 
-        var latestReports = await filteredReportsQuery
+        var latestReports = await _context.MonthlyReports
+            .AsNoTracking()
+            .Where(x => x.Year == selectedYear && x.Month == selectedMonth)
             .Include(x => x.Advisor)
             .OrderByDescending(x => x.Id)
             .Take(12)
             .ToListAsync();
 
-        var monthlyGrouped = await filteredReportsQuery
+        var monthlyGrouped = filteredReports
             .GroupBy(x => x.AdvisorId)
             .Select(g => new
             {
@@ -47,7 +50,7 @@ public class HomeController : Controller
                 MonthlySu = g.Sum(x => x.Su),
                 BaseCommission = g.Sum(x => x.Commission)
             })
-            .ToListAsync();
+            .ToList();
 
         var monthlyGroupedDict = monthlyGrouped.ToDictionary(x => x.AdvisorId, x => x);
 
@@ -96,18 +99,14 @@ public class HomeController : Controller
             .OrderBy(x => x)
             .ToListAsync();
 
-        decimal totalAmount = await _context.MonthlyReports
+        var allReports = await _context.MonthlyReports
             .AsNoTracking()
-            .SumAsync(x => (decimal?)x.Amount) ?? 0m;
+            .ToListAsync();
 
-        decimal totalCommission = await _context.MonthlyReports
-            .AsNoTracking()
-            .SumAsync(x => (decimal?)x.Commission) ?? 0m;
-
-        decimal currentMonthAmount = await filteredReportsQuery
-            .SumAsync(x => (decimal?)x.Amount) ?? 0m;
-
-        int monthlyReportCount = await filteredReportsQuery.CountAsync();
+        decimal totalAmount = allReports.Sum(x => x.Amount);
+        decimal totalCommission = allReports.Sum(x => x.Commission);
+        decimal currentMonthAmount = filteredReports.Sum(x => x.Amount);
+        int monthlyReportCount = filteredReports.Count;
 
         var years = BuildYearList(allYears, selectedYear);
         var months = BuildMonthList(selectedMonth);

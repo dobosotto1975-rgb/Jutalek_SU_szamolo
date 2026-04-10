@@ -38,6 +38,22 @@ public class DataEntryController : Controller
     {
         ApplyYesCalculations(model);
 
+        // plusz szerveroldali ellenőrzések
+        var advisorExists = await _context.Advisors
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == model.AdvisorId && x.IsActive);
+
+        if (!advisorExists)
+        {
+            ModelState.AddModelError(nameof(model.AdvisorId), "A kiválasztott tanácsadó nem létezik vagy inaktív.");
+        }
+
+        var canonicalProduct = ProductCatalog.GetDisplayLabel(model.Product);
+        if (string.IsNullOrWhiteSpace(canonicalProduct))
+        {
+            ModelState.AddModelError(nameof(model.Product), "A kiválasztott termék érvénytelen.");
+        }
+
         if (!ModelState.IsValid)
         {
             model = await BuildViewModelAsync(model);
@@ -45,7 +61,6 @@ public class DataEntryController : Controller
             return View(model);
         }
 
-        var canonicalProduct = ProductCatalog.GetDisplayLabel(model.Product);
         var calc = _productCalculationService.Calculate(canonicalProduct, model.Amount, model.IsUkContract);
 
         var report = new MonthlyReport
@@ -62,16 +77,32 @@ public class DataEntryController : Controller
             IsUkContract = calc.IsUkContract
         };
 
-        _context.MonthlyReports.Add(report);
-        await _context.SaveChangesAsync();
+        try
+        {
+            _context.MonthlyReports.Add(report);
+            await _context.SaveChangesAsync();
 
-        TempData["Success"] = "Az adat sikeresen rögzítve lett.";
-        return RedirectToAction(nameof(Index));
+            TempData["Success"] = "Az adat sikeresen rögzítve lett.";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError(string.Empty, "Az adatbázisba mentés nem sikerült. Ellenőrizd a megadott adatokat és az adatbázis kapcsolatot.");
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Váratlan hiba történt mentés közben.");
+        }
+
+        model = await BuildViewModelAsync(model);
+        LoadRuleJson();
+        return View(model);
     }
 
     private async Task<DataEntryViewModel> BuildViewModelAsync(DataEntryViewModel model)
     {
         var advisors = await _context.Advisors
+            .AsNoTracking()
             .Where(x => x.IsActive)
             .OrderBy(x => x.Name)
             .ToListAsync();

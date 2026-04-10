@@ -191,6 +191,121 @@ public class MonthlyReportsController : Controller
         return View(model);
     }
 
+    public async Task<IActionResult> AdvisorMonthlySummary(int? year, int? month, int? advisorId)
+    {
+        var now = DateTime.Now;
+        var selectedYear = year ?? now.Year;
+        var selectedMonth = month ?? now.Month;
+        var selectedAdvisorId = advisorId.HasValue && advisorId.Value > 0 ? advisorId : null;
+
+        var advisors = await _context.Advisors
+            .AsNoTracking()
+            .Where(x => x.IsActive)
+            .OrderBy(x => x.Name)
+            .ToListAsync();
+
+        var reportsQuery = _context.MonthlyReports
+            .AsNoTracking()
+            .Include(x => x.Advisor)
+            .Where(x => x.Year == selectedYear && x.Month == selectedMonth);
+
+        if (selectedAdvisorId.HasValue)
+        {
+            reportsQuery = reportsQuery.Where(x => x.AdvisorId == selectedAdvisorId.Value);
+        }
+
+        var reports = await reportsQuery.ToListAsync();
+
+        var rows = reports
+            .GroupBy(x => new
+            {
+                x.AdvisorId,
+                AdvisorName = x.Advisor != null ? x.Advisor.Name : "Ismeretlen"
+            })
+            .Select(g =>
+            {
+                var monthlyAmount = g.Sum(x => x.Amount);
+                var monthlySu = g.Sum(x => x.Su);
+                var baseCommission = g.Sum(x => x.Commission);
+
+                decimal bonusAmount = 0m;
+
+                if (monthlySu >= 9m)
+                {
+                    bonusAmount = Math.Round(baseCommission * 0.45m, 0);
+                }
+                else if (monthlySu >= 4.5m)
+                {
+                    bonusAmount = Math.Round(baseCommission * 0.20m, 0);
+                }
+
+                return new AdvisorMonthlySummaryRow
+                {
+                    AdvisorId = g.Key.AdvisorId,
+                    AdvisorName = g.Key.AdvisorName,
+                    ReportCount = g.Count(),
+                    MonthlyAmount = monthlyAmount,
+                    MonthlySu = monthlySu,
+                    BaseCommission = baseCommission,
+                    BonusAmount = bonusAmount,
+                    FinalCommission = baseCommission + bonusAmount
+                };
+            })
+            .OrderByDescending(x => x.MonthlySu)
+            .ThenByDescending(x => x.FinalCommission)
+            .ThenBy(x => x.AdvisorName)
+            .ToList();
+
+        var yearsFromData = await _context.MonthlyReports
+            .AsNoTracking()
+            .Select(x => x.Year)
+            .Distinct()
+            .OrderBy(x => x)
+            .ToListAsync();
+
+        if (!yearsFromData.Any())
+        {
+            yearsFromData = Enumerable.Range(DateTime.Now.Year - 2, 6).ToList();
+        }
+        else
+        {
+            var minYear = Math.Min(yearsFromData.Min(), DateTime.Now.Year - 1);
+            var maxYear = Math.Max(yearsFromData.Max(), DateTime.Now.Year + 1);
+            yearsFromData = Enumerable.Range(minYear, maxYear - minYear + 1).ToList();
+        }
+
+        var model = new AdvisorMonthlySummaryFilterViewModel
+        {
+            SelectedYear = selectedYear,
+            SelectedMonth = selectedMonth,
+            SelectedAdvisorId = selectedAdvisorId,
+
+            Years = yearsFromData
+                .Select(y => new SelectListItem
+                {
+                    Value = y.ToString(),
+                    Text = y.ToString(),
+                    Selected = y == selectedYear
+                })
+                .ToList(),
+
+            Months = BuildMonthItems(selectedMonth),
+
+            Advisors = BuildAdvisorItems(advisors, selectedAdvisorId),
+
+            Rows = rows,
+
+            ReportCount = rows.Sum(x => x.ReportCount),
+            TotalMonthlyAmount = rows.Sum(x => x.MonthlyAmount),
+            TotalMonthlySu = rows.Sum(x => x.MonthlySu),
+            TotalBaseCommission = rows.Sum(x => x.BaseCommission),
+            TotalBonusAmount = rows.Sum(x => x.BonusAmount),
+            TotalFinalCommission = rows.Sum(x => x.FinalCommission)
+        };
+
+        return View(model);
+    }
+
     private void CalculateValues(MonthlyReport model)
     {
         var calc = _productCalculationService.Calculate(model.Product, model.Amount, model.IsUkContract);
@@ -261,6 +376,56 @@ public class MonthlyReportsController : Controller
             .ToList();
 
         ViewBag.Products = new SelectList(products, "Value", "Text", selectedProduct);
+    }
+
+    private static List<SelectListItem> BuildMonthItems(int selectedMonth)
+    {
+        var monthNames = new Dictionary<int, string>
+        {
+            [1] = "Január",
+            [2] = "Február",
+            [3] = "Március",
+            [4] = "Április",
+            [5] = "Május",
+            [6] = "Június",
+            [7] = "Július",
+            [8] = "Augusztus",
+            [9] = "Szeptember",
+            [10] = "Október",
+            [11] = "November",
+            [12] = "December"
+        };
+
+        return monthNames
+            .Select(x => new SelectListItem
+            {
+                Value = x.Key.ToString(),
+                Text = x.Value,
+                Selected = x.Key == selectedMonth
+            })
+            .ToList();
+    }
+
+    private static List<SelectListItem> BuildAdvisorItems(List<Advisor> advisors, int? selectedAdvisorId)
+    {
+        var items = new List<SelectListItem>
+        {
+            new()
+            {
+                Value = "",
+                Text = "Összes tanácsadó",
+                Selected = !selectedAdvisorId.HasValue
+            }
+        };
+
+        items.AddRange(advisors.Select(x => new SelectListItem
+        {
+            Value = x.Id.ToString(),
+            Text = x.Name,
+            Selected = selectedAdvisorId.HasValue && x.Id == selectedAdvisorId.Value
+        }));
+
+        return items;
     }
 
     private void LoadRuleJson()

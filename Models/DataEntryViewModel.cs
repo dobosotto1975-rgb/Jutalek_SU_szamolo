@@ -6,20 +6,19 @@ namespace AdvisorDashboardApp.Models;
 
 public class DataEntryViewModel : IValidatableObject
 {
-    [Required(ErrorMessage = "A tanácsadó kiválasztása kötelező.")]
+    [Range(1, int.MaxValue, ErrorMessage = "A tanácsadó kiválasztása kötelező.")]
     public int AdvisorId { get; set; }
 
-    [Required(ErrorMessage = "Az év kiválasztása kötelező.")]
+    [Range(2020, 2100, ErrorMessage = "Adj meg egy érvényes évet.")]
     public int Year { get; set; }
 
-    [Required(ErrorMessage = "A hónap kiválasztása kötelező.")]
+    [Range(1, 12, ErrorMessage = "A hónap kiválasztása kötelező.")]
     public int Month { get; set; }
 
     [Required(ErrorMessage = "A termék kiválasztása kötelező.")]
     public string Product { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Az állománydíj megadása kötelező.")]
-    [Range(0.01, double.MaxValue, ErrorMessage = "Az állománydíj legyen nagyobb mint 0.")]
+    [Range(typeof(decimal), "0,01", "999999999", ErrorMessage = "Az állománydíj legyen nagyobb mint 0.")]
     public decimal Amount { get; set; }
 
     public bool IsUkContract { get; set; }
@@ -32,7 +31,7 @@ public class DataEntryViewModel : IValidatableObject
     public decimal? YesFullBaseAmount { get; set; }
     public decimal? YesFullTotalAmount { get; set; }
 
-    [Range(0, 100, ErrorMessage = "A kedvezmény % 0 és 100 között lehet.")]
+    [Range(typeof(decimal), "0", "100", ErrorMessage = "A kedvezmény % 0 és 100 között lehet.")]
     public decimal? YesDiscountPercent { get; set; }
 
     public decimal YesFullSupplementAmount { get; set; }
@@ -52,6 +51,23 @@ public class DataEntryViewModel : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        if (string.IsNullOrWhiteSpace(Product))
+        {
+            yield return new ValidationResult(
+                "A termék kiválasztása kötelező.",
+                new[] { nameof(Product) });
+            yield break;
+        }
+
+        var canonicalProduct = ProductCatalog.GetDisplayLabel(Product);
+        if (string.IsNullOrWhiteSpace(canonicalProduct))
+        {
+            yield return new ValidationResult(
+                "A kiválasztott termék érvénytelen.",
+                new[] { nameof(Product) });
+            yield break;
+        }
+
         if (!RequiresYesDetails())
             yield break;
 
