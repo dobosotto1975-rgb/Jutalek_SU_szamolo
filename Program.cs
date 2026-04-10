@@ -24,7 +24,13 @@ builder.Services.AddControllersWithViews();
 // Connection string logika
 var renderDatabaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 var postgresConnection = builder.Configuration.GetConnectionString("PostgresConnection");
-var sqliteConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// A SQLite fájlt fixen a projekt/content root mappába tesszük
+var sqliteFilePath = Path.Combine(builder.Environment.ContentRootPath, "advisor_dashboard.db");
+var sqliteConnection = $"Data Source={sqliteFilePath}";
+
+Console.WriteLine($"ContentRootPath: {builder.Environment.ContentRootPath}");
+Console.WriteLine($"SQLite file path: {sqliteFilePath}");
 
 string finalConnectionString;
 bool usePostgres;
@@ -43,15 +49,11 @@ try
         finalConnectionString = postgresConnection;
         usePostgres = true;
     }
-    else if (!string.IsNullOrWhiteSpace(sqliteConnection))
-    {
-        Console.WriteLine("Using SQLite fallback.");
-        finalConnectionString = sqliteConnection;
-        usePostgres = false;
-    }
     else
     {
-        throw new Exception("No valid connection string was found.");
+        Console.WriteLine("Using SQLite with absolute file path.");
+        finalConnectionString = sqliteConnection;
+        usePostgres = false;
     }
 }
 catch (Exception ex)
@@ -89,7 +91,7 @@ var app = builder.Build();
 
 Console.WriteLine("=== BUILD OK ===");
 
-// Forwarded headers a proxy mögötti korrekt HTTPS kezeléshez
+// Forwarded headers
 app.UseForwardedHeaders();
 
 // SAFE MIGRATION
@@ -119,11 +121,10 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
-// Health / ping endpointok
+// Health endpointok
 app.MapGet("/health", () => Results.Text("OK", "text/plain"));
 app.MapGet("/ping", () => Results.Text(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "text/plain"));
 
-// MVC route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
