@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AdvisorDashboardApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260410194722_AddContractStartDateAndPremiumPaidToMonthlyReport")]
-    partial class AddContractStartDateAndPremiumPaidToMonthlyReport
+    [Migration("20260410201753_InitialCreateClean")]
+    partial class InitialCreateClean
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
