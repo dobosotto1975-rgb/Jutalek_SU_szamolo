@@ -53,6 +53,11 @@ catch (Exception ex)
     throw;
 }
 
+if (string.IsNullOrWhiteSpace(finalConnectionString))
+{
+    throw new Exception("No valid connection string was found.");
+}
+
 // DB konfiguráció
 if (!string.IsNullOrWhiteSpace(renderDatabaseUrl) || !string.IsNullOrWhiteSpace(postgresConnection))
 {
@@ -71,7 +76,7 @@ var app = builder.Build();
 
 Console.WriteLine("=== BUILD OK ===");
 
-// 🔥 SAFE MIGRATION (NEM DÖNTI EL AZ APPOT)
+// SAFE MIGRATION
 try
 {
     using (var scope = app.Services.CreateScope())
@@ -86,7 +91,6 @@ catch (Exception ex)
 {
     Console.WriteLine("!!! MIGRATION ERROR (APP STILL RUNS) !!!");
     Console.WriteLine(ex.ToString());
-    // NEM dobjuk tovább → app nem hal meg
 }
 
 if (!app.Environment.IsDevelopment())
@@ -101,10 +105,11 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
-// HEALTH CHECK (nagyon fontos Renderen)
-app.MapGet("/health", () => "OK");
+// Health / ping endpointok
+app.MapGet("/health", () => Results.Text("OK", "text/plain"));
+app.MapGet("/ping", () => Results.Text(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "text/plain"));
 
-// Default route
+// MVC route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
@@ -113,8 +118,6 @@ Console.WriteLine("=== APP RUNNING ===");
 
 app.Run();
 
-
-// 🔧 Render DATABASE_URL → normális connection string
 static string BuildRenderPostgresConnectionString(string databaseUrl)
 {
     var uri = new Uri(databaseUrl);
@@ -128,4 +131,3 @@ static string BuildRenderPostgresConnectionString(string databaseUrl)
 
     return $"Host={uri.Host};Port={dbPort};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
 }
-app.MapGet("/", () => "APP RUNNING");
