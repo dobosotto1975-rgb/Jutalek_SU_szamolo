@@ -23,33 +23,42 @@ public class HomeController : Controller
         var selectedMonth = month ?? now.Month;
 
         var advisors = await _context.Advisors
+            .AsNoTracking()
             .Where(x => x.IsActive)
             .OrderBy(x => x.Name)
             .ToListAsync();
 
-        var allReports = await _context.MonthlyReports
+        var filteredReportsQuery = _context.MonthlyReports
+            .AsNoTracking()
+            .Where(x => x.Year == selectedYear && x.Month == selectedMonth);
+
+        var latestReports = await filteredReportsQuery
             .Include(x => x.Advisor)
-            .ToListAsync();
-
-        var filteredReports = allReports
-            .Where(x => x.Year == selectedYear && x.Month == selectedMonth)
-            .ToList();
-
-        var latestReports = filteredReports
             .OrderByDescending(x => x.Id)
             .Take(12)
-            .ToList();
+            .ToListAsync();
+
+        var monthlyGrouped = await filteredReportsQuery
+            .GroupBy(x => x.AdvisorId)
+            .Select(g => new
+            {
+                AdvisorId = g.Key,
+                MonthlyAmount = g.Sum(x => x.Amount),
+                MonthlySu = g.Sum(x => x.Su),
+                BaseCommission = g.Sum(x => x.Commission)
+            })
+            .ToListAsync();
+
+        var monthlyGroupedDict = monthlyGrouped.ToDictionary(x => x.AdvisorId, x => x);
 
         var advisorRows = advisors
             .Select(advisor =>
             {
-                var advisorMonthReports = filteredReports
-                    .Where(x => x.AdvisorId == advisor.Id)
-                    .ToList();
+                monthlyGroupedDict.TryGetValue(advisor.Id, out var data);
 
-                var monthlyAmount = advisorMonthReports.Sum(x => x.Amount);
-                var monthlySu = advisorMonthReports.Sum(x => x.Su);
-                var baseCommission = advisorMonthReports.Sum(x => x.Commission);
+                var monthlyAmount = data?.MonthlyAmount ?? 0m;
+                var monthlySu = data?.MonthlySu ?? 0m;
+                var baseCommission = data?.BaseCommission ?? 0m;
 
                 decimal bonusAmount = 0m;
 
@@ -80,7 +89,27 @@ public class HomeController : Controller
             .ThenBy(x => x.AdvisorName)
             .ToList();
 
-        var years = BuildYearList(allReports, selectedYear);
+        var allYears = await _context.MonthlyReports
+            .AsNoTracking()
+            .Select(x => x.Year)
+            .Distinct()
+            .OrderBy(x => x)
+            .ToListAsync();
+
+        decimal totalAmount = await _context.MonthlyReports
+            .AsNoTracking()
+            .SumAsync(x => (decimal?)x.Amount) ?? 0m;
+
+        decimal totalCommission = await _context.MonthlyReports
+            .AsNoTracking()
+            .SumAsync(x => (decimal?)x.Commission) ?? 0m;
+
+        decimal currentMonthAmount = await filteredReportsQuery
+            .SumAsync(x => (decimal?)x.Amount) ?? 0m;
+
+        int monthlyReportCount = await filteredReportsQuery.CountAsync();
+
+        var years = BuildYearList(allYears, selectedYear);
         var months = BuildMonthList(selectedMonth);
 
         var model = new DashboardViewModel
@@ -91,10 +120,10 @@ public class HomeController : Controller
             Months = months,
 
             AdvisorCount = advisors.Count,
-            MonthlyReportCount = filteredReports.Count,
-            TotalAmount = allReports.Sum(x => x.Amount),
-            TotalCommission = allReports.Sum(x => x.Commission),
-            CurrentMonthAmount = filteredReports.Sum(x => x.Amount),
+            MonthlyReportCount = monthlyReportCount,
+            TotalAmount = totalAmount,
+            TotalCommission = totalCommission,
+            CurrentMonthAmount = currentMonthAmount,
             LatestReports = latestReports,
             AdvisorRows = advisorRows
         };
@@ -116,14 +145,8 @@ public class HomeController : Controller
         });
     }
 
-    private static List<SelectListItem> BuildYearList(List<MonthlyReport> allReports, int selectedYear)
+    private static List<SelectListItem> BuildYearList(List<int> yearsFromData, int selectedYear)
     {
-        var yearsFromData = allReports
-            .Select(x => x.Year)
-            .Distinct()
-            .OrderBy(x => x)
-            .ToList();
-
         if (!yearsFromData.Any())
         {
             yearsFromData = Enumerable.Range(DateTime.Now.Year - 2, 6).ToList();
