@@ -128,3 +128,4 @@ static string BuildRenderPostgresConnectionString(string databaseUrl)
 
     return $"Host={uri.Host};Port={dbPort};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
 }
+app.MapGet("/", () => "APP RUNNING");
