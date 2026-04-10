@@ -91,22 +91,28 @@ var app = builder.Build();
 
 Console.WriteLine("=== BUILD OK ===");
 
-// Forwarded headers
 app.UseForwardedHeaders();
 
-// SAFE MIGRATION
-try
+// MIGRATION csak helyi SQLite fejlesztéshez
+if (!usePostgres)
 {
-    using var scope = app.Services.CreateScope();
-    Console.WriteLine("=== DB MIGRATION START ===");
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-    Console.WriteLine("=== DB MIGRATION OK ===");
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        Console.WriteLine("=== DB MIGRATION START ===");
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+        Console.WriteLine("=== DB MIGRATION OK ===");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("!!! MIGRATION ERROR (APP STILL RUNS) !!!");
+        Console.WriteLine(ex);
+    }
 }
-catch (Exception ex)
+else
 {
-    Console.WriteLine("!!! MIGRATION ERROR (APP STILL RUNS) !!!");
-    Console.WriteLine(ex);
+    Console.WriteLine("=== POSTGRES MODE: automatic migration skipped ===");
 }
 
 if (!app.Environment.IsDevelopment())
@@ -115,13 +121,17 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Renderen nincs szükség kötelező https redirectre reverse proxy mögött
+if (!usePostgres)
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
 
 app.UseRouting();
 app.UseAuthorization();
 
-// Health endpointok
 app.MapGet("/health", () => Results.Text("OK", "text/plain"));
 app.MapGet("/ping", () => Results.Text(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "text/plain"));
 
