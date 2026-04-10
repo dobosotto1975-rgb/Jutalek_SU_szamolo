@@ -1,338 +1,173 @@
 ﻿@model AdvisorDashboardApp.Models.DataEntryViewModel
-@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Adatfelvitel";
 }
 
-<section class="page-header">
-    <div>
-        <h1>Új havi adat</h1>
-        <p>Rögzíts új adatot tanácsadóhoz.</p>
-    </div>
-</section>
+<div class="page-header">
+    <h1>Adatfelvitel</h1>
+    <p class="muted-text">Új havi termelési adat rögzítése.</p>
+</div>
 
-<section class="panel form-card">
-    <div class="panel-header">
-        <h2>Adatfelvitel</h2>
-    </div>
+<section class="panel">
+    <form asp-action="Index" method="post" class="entry-form">
+        @Html.AntiForgeryToken()
 
-    <form asp-action="Index" method="post">
-        <div asp-validation-summary="ModelOnly" class="validation-text"></div>
+        <div asp-validation-summary="ModelOnly" class="text-danger validation-summary"></div>
 
-        <div class="form-grid two-col">
-            <div class="form-group">
+        <div class="form-grid">
+            <div class="form-field">
                 <label asp-for="AdvisorId">Tanácsadó</label>
-
-                <select asp-for="AdvisorId" class="input-modern native-hidden-select" id="AdvisorId">
-                    <option value="">-- válassz tanácsadót --</option>
-                    @foreach (var item in Model.Advisors)
-                    {
-                        <option value="@item.Value" selected="@item.Selected">@item.Text</option>
-                    }
+                <select asp-for="AdvisorId" asp-items="Model.Advisors" class="form-control">
+                    <option value="">Válassz tanácsadót</option>
                 </select>
-
-                <div class="custom-select" data-target="AdvisorId" data-placeholder="-- válassz tanácsadót --">
-                    <button type="button" class="custom-select-trigger">
-                        <span class="custom-select-text">-- válassz tanácsadót --</span>
-                        <span class="custom-select-arrow">⌄</span>
-                    </button>
-                    <div class="custom-select-dropdown">
-                        <div class="custom-select-search-wrap">
-                            <input type="text" class="custom-select-search" placeholder="Keresés..." />
-                        </div>
-                        <div class="custom-select-options">
-                            @foreach (var item in Model.Advisors)
-                            {
-                                <button type="button"
-                                        class="custom-select-option"
-                                        data-value="@item.Value"
-                                        data-text="@item.Text">
-                                    @item.Text
-                                </button>
-                            }
-                        </div>
-                    </div>
-                </div>
-
-                <span asp-validation-for="AdvisorId" class="validation-text"></span>
+                <span asp-validation-for="AdvisorId" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
+            <div class="form-field">
                 <label asp-for="Year">Év</label>
-
-                <select asp-for="Year" class="input-modern native-hidden-select" id="Year">
-                    <option value="">-- válassz évet --</option>
-                    @foreach (var item in Model.Years)
-                    {
-                        <option value="@item.Value" selected="@item.Selected">@item.Text</option>
-                    }
-                </select>
-
-                <div class="custom-select" data-target="Year" data-placeholder="-- válassz évet --">
-                    <button type="button" class="custom-select-trigger">
-                        <span class="custom-select-text">-- válassz évet --</span>
-                        <span class="custom-select-arrow">⌄</span>
-                    </button>
-                    <div class="custom-select-dropdown">
-                        <div class="custom-select-search-wrap">
-                            <input type="text" class="custom-select-search" placeholder="Keresés..." />
-                        </div>
-                        <div class="custom-select-options">
-                            @foreach (var item in Model.Years)
-                            {
-                                <button type="button"
-                                        class="custom-select-option"
-                                        data-value="@item.Value"
-                                        data-text="@item.Text">
-                                    @item.Text
-                                </button>
-                            }
-                        </div>
-                    </div>
-                </div>
-
-                <span asp-validation-for="Year" class="validation-text"></span>
+                <select asp-for="Year" asp-items="Model.Years" class="form-control"></select>
+                <span asp-validation-for="Year" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
+            <div class="form-field">
                 <label asp-for="Month">Hónap</label>
-
-                <select asp-for="Month" class="input-modern native-hidden-select" id="Month">
-                    <option value="">-- válassz hónapot --</option>
-                    @foreach (var item in Model.Months)
-                    {
-                        <option value="@item.Value" selected="@item.Selected">@item.Text</option>
-                    }
-                </select>
-
-                <div class="custom-select" data-target="Month" data-placeholder="-- válassz hónapot --">
-                    <button type="button" class="custom-select-trigger">
-                        <span class="custom-select-text">-- válassz hónapot --</span>
-                        <span class="custom-select-arrow">⌄</span>
-                    </button>
-                    <div class="custom-select-dropdown">
-                        <div class="custom-select-search-wrap">
-                            <input type="text" class="custom-select-search" placeholder="Keresés..." />
-                        </div>
-                        <div class="custom-select-options">
-                            @foreach (var item in Model.Months)
-                            {
-                                <button type="button"
-                                        class="custom-select-option"
-                                        data-value="@item.Value"
-                                        data-text="@item.Text">
-                                    @item.Text
-                                </button>
-                            }
-                        </div>
-                    </div>
-                </div>
-
-                <span asp-validation-for="Month" class="validation-text"></span>
+                <select asp-for="Month" asp-items="Model.Months" class="form-control"></select>
+                <span asp-validation-for="Month" class="text-danger"></span>
             </div>
 
-            <div class="form-group full-width">
+            <div class="form-field">
                 <label asp-for="Product">Termék</label>
-
-                <select asp-for="Product" class="input-modern native-hidden-select" id="Product">
-                    <option value="">-- válassz terméket --</option>
-                    @foreach (var item in Model.Products)
-                    {
-                        <option value="@item.Value" selected="@item.Selected">@item.Text</option>
-                    }
-                </select>
-
-                <div class="custom-select" data-target="Product" data-placeholder="-- válassz terméket --">
-                    <button type="button" class="custom-select-trigger">
-                        <span class="custom-select-text">-- válassz terméket --</span>
-                        <span class="custom-select-arrow">⌄</span>
-                    </button>
-                    <div class="custom-select-dropdown">
-                        <div class="custom-select-search-wrap">
-                            <input type="text" class="custom-select-search" placeholder="Keresés..." />
-                        </div>
-                        <div class="custom-select-options product-options">
-                            @foreach (var item in Model.Products)
-                            {
-                                <button type="button"
-                                        class="custom-select-option"
-                                        data-value="@item.Value"
-                                        data-text="@item.Text">
-                                    @item.Text
-                                </button>
-                            }
-                        </div>
-                    </div>
-                </div>
-
-                <span asp-validation-for="Product" class="validation-text"></span>
+                <select asp-for="Product" asp-items="Model.Products" class="form-control" id="Product"></select>
+                <span asp-validation-for="Product" class="text-danger"></span>
             </div>
 
-            <div class="form-group" id="ukQuestionWrap" style="display:none;">
-                <label asp-for="IsUkContract">ÜK-san lett megkötve?</label>
-                <select asp-for="IsUkContract" class="input-modern" id="ukSelect">
-                    <option value="false">Nem</option>
+            <div class="form-field">
+                <label asp-for="Amount">Állománydíj</label>
+                <input asp-for="Amount" class="form-control" />
+                <span asp-validation-for="Amount" class="text-danger"></span>
+            </div>
+
+            <div class="form-field">
+                <label asp-for="ContractStartDate">Kötés kezdete</label>
+                <input asp-for="ContractStartDate" type="date" class="form-control" />
+                <span asp-validation-for="ContractStartDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-field">
+                <label asp-for="IsPremiumPaid">Díjrendezett-e</label>
+                <select asp-for="IsPremiumPaid" class="form-control">
                     <option value="true">Igen</option>
+                    <option value="false">Nem</option>
                 </select>
+                <span asp-validation-for="IsPremiumPaid" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="Amount">Állománydíj (Ft)</label>
-                <input asp-for="Amount" class="input-modern" type="number" step="0.01" id="Amount" />
-                <span asp-validation-for="Amount" class="validation-text"></span>
+            <div class="form-field checkbox-field">
+                <label class="checkbox-label">
+                    <input asp-for="IsUkContract" type="checkbox" />
+                    ÜK-s kötés
+                </label>
             </div>
         </div>
 
-        <div id="yesFieldsWrap" style="display:none; margin-top: 24px;">
-            <div class="panel-header" style="margin-bottom: 16px;">
-                <h2>YES segédszámoló</h2>
-            </div>
+        <div id="yesProductSection" class="yes-section" style="display:none;">
+            <h3>Vienna Yes kiegészítő adatok</h3>
 
-            <div class="form-grid two-col">
-                <div class="form-group">
-                    <label asp-for="YesFullBaseAmount">Teljes alapdíj (Ft)</label>
-                    <input asp-for="YesFullBaseAmount" class="input-modern" type="number" step="0.01" id="YesFullBaseAmount" />
-                    <span asp-validation-for="YesFullBaseAmount" class="validation-text"></span>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label asp-for="YesFullBaseAmount">Teljes alapdíj</label>
+                    <input asp-for="YesFullBaseAmount" class="form-control" />
+                    <span asp-validation-for="YesFullBaseAmount" class="text-danger"></span>
                 </div>
 
-                <div class="form-group">
-                    <label asp-for="YesFullTotalAmount">Teljes összes díj (Ft)</label>
-                    <input asp-for="YesFullTotalAmount" class="input-modern" type="number" step="0.01" id="YesFullTotalAmount" />
-                    <span asp-validation-for="YesFullTotalAmount" class="validation-text"></span>
+                <div class="form-field">
+                    <label asp-for="YesFullTotalAmount">Teljes összes díj</label>
+                    <input asp-for="YesFullTotalAmount" class="form-control" />
+                    <span asp-validation-for="YesFullTotalAmount" class="text-danger"></span>
                 </div>
 
-                <div class="form-group">
+                <div class="form-field">
                     <label asp-for="YesDiscountPercent">Kedvezmény %</label>
-                    <input asp-for="YesDiscountPercent" class="input-modern" type="number" step="0.01" id="YesDiscountPercent" />
-                    <span asp-validation-for="YesDiscountPercent" class="validation-text"></span>
+                    <input asp-for="YesDiscountPercent" class="form-control" />
+                    <span asp-validation-for="YesDiscountPercent" class="text-danger"></span>
                 </div>
 
-                <div class="form-group">
-                    <label asp-for="YesFullSupplementAmount">Teljes kiegészítő díj (Ft)</label>
-                    <input asp-for="YesFullSupplementAmount" class="input-modern calculator-output" id="YesFullSupplementAmount" readonly />
+                <div class="form-field">
+                    <label>Kiegészítő díj</label>
+                    <input value="@Model.YesFullSupplementAmount.ToString("0.##")" class="form-control" readonly />
                 </div>
 
-                <div class="form-group">
-                    <label asp-for="YesDiscountedBaseAmount">Kedvezményes alapdíj (Ft)</label>
-                    <input asp-for="YesDiscountedBaseAmount" class="input-modern calculator-output" id="YesDiscountedBaseAmount" readonly />
+                <div class="form-field">
+                    <label>Kedvezményes alapdíj</label>
+                    <input value="@Model.YesDiscountedBaseAmount.ToString("0.##")" class="form-control" readonly />
                 </div>
 
-                <div class="form-group">
-                    <label asp-for="YesDiscountedSupplementAmount">Kedvezményes kiegészítő díj (Ft)</label>
-                    <input asp-for="YesDiscountedSupplementAmount" class="input-modern calculator-output" id="YesDiscountedSupplementAmount" readonly />
+                <div class="form-field">
+                    <label>Kedvezményes kiegészítő díj</label>
+                    <input value="@Model.YesDiscountedSupplementAmount.ToString("0.##")" class="form-control" readonly />
                 </div>
 
-                <div class="form-group">
-                    <label asp-for="YesDiscountedTotalAmount">Kedvezményes teljes díj (Ft)</label>
-                    <input asp-for="YesDiscountedTotalAmount" class="input-modern calculator-output" id="YesDiscountedTotalAmount" readonly />
+                <div class="form-field">
+                    <label>Kedvezményes teljes díj</label>
+                    <input value="@Model.YesDiscountedTotalAmount.ToString("0.##")" class="form-control" readonly />
                 </div>
             </div>
         </div>
 
-        <div style="margin-top: 24px;">
-            <div class="panel-header" style="margin-bottom: 16px;">
-                <h2>Számolt értékek</h2>
+        <div class="result-cards">
+            <div class="result-card">
+                <div class="result-label">Jutalék %</div>
+                <div class="result-value">@Model.CommissionPercent.ToString("0.##") %</div>
             </div>
 
-            <div class="form-grid two-col">
-                <div class="form-group">
-                    <label asp-for="CommissionPercent">Jutalék %</label>
-                    <input asp-for="CommissionPercent" class="input-modern" id="CommissionPercent" readonly />
-                </div>
+            <div class="result-card">
+                <div class="result-label">Osztó</div>
+                <div class="result-value">@Model.Divider.ToString("0.##")</div>
+            </div>
 
-                <div class="form-group">
-                    <label asp-for="Divider">Osztó</label>
-                    <input asp-for="Divider" class="input-modern" id="Divider" readonly />
-                </div>
+            <div class="result-card">
+                <div class="result-label">Számolt jutalék</div>
+                <div class="result-value">@Model.CalculatedCommission.ToString("N0") Ft</div>
+            </div>
 
-                <div class="form-group">
-                    <label asp-for="CalculatedCommission">Jutalék (Ft)</label>
-                    <input asp-for="CalculatedCommission" class="input-modern calculator-output" id="Commission" readonly />
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="CalculatedSu">SU</label>
-                    <input asp-for="CalculatedSu" class="input-modern calculator-output" id="Su" readonly />
-                </div>
+            <div class="result-card">
+                <div class="result-label">SU</div>
+                <div class="result-value">@Model.CalculatedSu.ToString("0.##")</div>
             </div>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn-primary">Mentés</button>
+            <button type="submit" class="btn btn-primary">Mentés</button>
         </div>
     </form>
 </section>
-
-@if (Model.Amount > 0 && !string.IsNullOrWhiteSpace(Model.Product))
-{
-    <section class="panel page-card" style="margin-top:24px;">
-        <div class="panel-header">
-            <h2>Előnézeti számolás</h2>
-        </div>
-
-        <div class="table-wrap">
-            <table class="modern-table">
-                <thead>
-                    <tr>
-                        <th>Termék</th>
-                        <th>Állománydíj</th>
-                        <th>Jutalék %</th>
-                        <th>Osztó</th>
-                        <th>Jutalék</th>
-                        <th>SU</th>
-                        <th>ÜK</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>@Model.Product</td>
-                        <td>@Model.Amount.ToString("N0") Ft</td>
-                        <td>@Model.CommissionPercent.ToString("N2") %</td>
-                        <td>@Model.Divider.ToString("N0")</td>
-                        <td>@Model.CalculatedCommission.ToString("N0") Ft</td>
-                        <td>@Model.CalculatedSu.ToString("N4")</td>
-                        <td>@(Model.IsUkContract ? "Igen" : "Nem")</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        @if (Model.RequiresYesDetails())
-        {
-            <div class="table-wrap" style="margin-top:20px;">
-                <table class="modern-table">
-                    <thead>
-                        <tr>
-                            <th>Teljes alapdíj</th>
-                            <th>Teljes összes díj</th>
-                            <th>Kedvezmény %</th>
-                            <th>Teljes kiegészítő díj</th>
-                            <th>Kedvezményes alapdíj</th>
-                            <th>Kedvezményes kiegészítő díj</th>
-                            <th>Kedvezményes teljes díj</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>@Model.YesFullBaseAmount?.ToString("N2") Ft</td>
-                            <td>@Model.YesFullTotalAmount?.ToString("N2") Ft</td>
-                            <td>@Model.YesDiscountPercent?.ToString("N2") %</td>
-                            <td>@Model.YesFullSupplementAmount.ToString("N2") Ft</td>
-                            <td>@Model.YesDiscountedBaseAmount.ToString("N2") Ft</td>
-                            <td>@Model.YesDiscountedSupplementAmount.ToString("N2") Ft</td>
-                            <td>@Model.YesDiscountedTotalAmount.ToString("N2") Ft</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        }
-    </section>
-}
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-        window.productRules = @Html.Raw(ViewBag.ProductRulesJson ?? "{}");
+        (function () {
+            const productSelect = document.getElementById("Product");
+            const yesSection = document.getElementById("yesProductSection");
+
+            function normalizeText(value) {
+                return (value || "").toLowerCase().trim();
+            }
+
+            function requiresYesSection(value) {
+                const text = normalizeText(value);
+                return text.includes("vienna yes");
+            }
+
+            function toggleYesSection() {
+                if (!productSelect || !yesSection) return;
+                yesSection.style.display = requiresYesSection(productSelect.value) ? "block" : "none";
+            }
+
+            if (productSelect) {
+                productSelect.addEventListener("change", toggleYesSection);
+                toggleYesSection();
+            }
+        })();
     </script>
 }

@@ -25,7 +25,9 @@ public class DataEntryController : Controller
         var model = await BuildViewModelAsync(new DataEntryViewModel
         {
             Year = DateTime.Now.Year,
-            Month = DateTime.Now.Month
+            Month = DateTime.Now.Month,
+            ContractStartDate = DateTime.Today,
+            IsPremiumPaid = true
         });
 
         LoadRuleJson();
@@ -38,7 +40,6 @@ public class DataEntryController : Controller
     {
         ApplyYesCalculations(model);
 
-        // plusz szerveroldali ellenőrzések
         var advisorExists = await _context.Advisors
             .AsNoTracking()
             .AnyAsync(x => x.Id == model.AdvisorId && x.IsActive);
@@ -74,7 +75,9 @@ public class DataEntryController : Controller
             Divider = calc.Divider,
             Commission = calc.Commission,
             Su = calc.Su,
-            IsUkContract = calc.IsUkContract
+            IsUkContract = calc.IsUkContract,
+            ContractStartDate = model.ContractStartDate,
+            IsPremiumPaid = model.IsPremiumPaid
         };
 
         try

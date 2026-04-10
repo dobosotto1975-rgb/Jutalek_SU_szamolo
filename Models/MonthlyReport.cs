@@ -7,38 +7,44 @@ public class MonthlyReport
 {
     public int Id { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "A tanácsadó kiválasztása kötelező.")]
     public int AdvisorId { get; set; }
+
+    [ForeignKey(nameof(AdvisorId))]
     public Advisor? Advisor { get; set; }
 
-    [Required]
+    [Range(2020, 2100, ErrorMessage = "Adj meg egy érvényes évet.")]
     public int Year { get; set; }
 
-    [Required]
-    [Range(1, 12)]
+    [Range(1, 12, ErrorMessage = "A hónap 1 és 12 között lehet.")]
     public int Month { get; set; }
 
-    [Required]
-    [StringLength(300)]
+    [Required(ErrorMessage = "A termék kiválasztása kötelező.")]
+    [StringLength(200)]
     public string Product { get; set; } = string.Empty;
 
-    [Column(TypeName = "decimal(18,2)")]
+    [Range(typeof(decimal), "0", "999999999")]
     public decimal Amount { get; set; }
 
-    [Column(TypeName = "decimal(18,2)")]
+    [Range(typeof(decimal), "0", "999999999")]
     public decimal CommissionPercent { get; set; }
 
-    [Column(TypeName = "decimal(18,2)")]
+    [Range(typeof(decimal), "0", "999999999")]
     public decimal Divider { get; set; }
 
-    [Column(TypeName = "decimal(18,2)")]
+    [Range(typeof(decimal), "0", "999999999")]
     public decimal Commission { get; set; }
 
-    [Column(TypeName = "decimal(18,4)")]
+    [Range(typeof(decimal), "0", "999999999")]
     public decimal Su { get; set; }
 
-    public bool IsUkContract { get; set; } = false;
+    public bool IsUkContract { get; set; }
 
-    [StringLength(500)]
+    [DataType(DataType.Date)]
+    public DateTime? ContractStartDate { get; set; }
+
+    public bool IsPremiumPaid { get; set; }
+
+    [StringLength(1000)]
     public string? Notes { get; set; }
 }

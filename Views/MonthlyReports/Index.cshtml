@@ -1,58 +1,54 @@
-﻿@model List<MonthlyReport>
+﻿@model IEnumerable<AdvisorDashboardApp.Models.MonthlyReport>
 @{
     ViewData["Title"] = "Havi adatok";
 }
 
 <div class="page-header">
     <h1>Havi adatok</h1>
-    <div class="header-actions">
-        <a class="btn-primary" asp-action="Create">Új havi adat</a>
-        <a class="btn-secondary" asp-action="Summary">Összesítő</a>
-    </div>
+    <p class="muted-text">Rögzített havi rekordok listája.</p>
 </div>
 
 <section class="panel">
-    @if (Model.Any())
-    {
-        <div class="table-wrap">
-            <table class="modern-table">
-                <thead>
+    <div class="toolbar">
+        <a asp-action="Create" class="btn btn-primary">Új havi adat</a>
+    </div>
+
+    <div class="table-wrap">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Tanácsadó</th>
+                    <th>Év</th>
+                    <th>Hónap</th>
+                    <th>Termék</th>
+                    <th>Állománydíj</th>
+                    <th>Kötés kezdete</th>
+                    <th>Díjrendezett</th>
+                    <th>Jutalék</th>
+                    <th>SU</th>
+                    <th>Műveletek</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
                     <tr>
-                        <th>Tanácsadó</th>
-                        <th>Év</th>
-                        <th>Hónap</th>
-                        <th>Termék</th>
-                        <th>Állománydíj</th>
-                        <th>Jutalék</th>
-                        <th>SU</th>
-                        <th>Művelet</th>
+                        <td>@item.Advisor?.Name</td>
+                        <td>@item.Year</td>
+                        <td>@item.Month</td>
+                        <td>@item.Product</td>
+                        <td>@item.Amount.ToString("N0") Ft</td>
+                        <td>@(item.ContractStartDate?.ToString("yyyy.MM.dd") ?? "-")</td>
+                        <td>@(item.IsPremiumPaid ? "Igen" : "Nem")</td>
+                        <td>@item.Commission.ToString("N0") Ft</td>
+                        <td>@item.Su.ToString("0.##")</td>
+                        <td class="actions-cell">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-secondary">Szerkesztés</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger">Törlés</a>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        <tr>
-                            <td>@item.Advisor?.Name</td>
-                            <td>@item.Year</td>
-                            <td>@item.Month</td>
-                            <td>@item.Product</td>
-                            <td>@item.Amount.ToString("N0") Ft</td>
-                            <td>@item.Commission.ToString("N0") Ft</td>
-                            <td>@item.Su.ToString("N4")</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a class="btn-edit-sm" asp-action="Edit" asp-route-id="@item.Id">Szerkesztés</a>
-                                    <a class="btn-danger-sm" asp-action="Delete" asp-route-id="@item.Id">Törlés</a>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-    else
-    {
-        <div class="empty-state">Még nincs rögzített havi adat.</div>
-    }
+                }
+            </tbody>
+        </table>
+    </div>
 </section>

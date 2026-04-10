@@ -23,6 +23,11 @@ public class DataEntryViewModel : IValidatableObject
 
     public bool IsUkContract { get; set; }
 
+    [DataType(DataType.Date)]
+    public DateTime? ContractStartDate { get; set; }
+
+    public bool IsPremiumPaid { get; set; }
+
     public decimal CommissionPercent { get; set; }
     public decimal Divider { get; set; }
     public decimal CalculatedCommission { get; set; }
