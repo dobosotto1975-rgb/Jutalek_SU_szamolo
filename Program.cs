@@ -4,33 +4,56 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Console.WriteLine("=== APP STARTING ===");
+
+// PORT kezelés (Render)
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))
 {
+    Console.WriteLine($"PORT detected: {port}");
     builder.WebHost.UseUrls($"http://*:{port}");
+}
+else
+{
+    Console.WriteLine("PORT not found, fallback to 10000");
+    builder.WebHost.UseUrls("http://*:10000");
 }
 
 builder.Services.AddControllersWithViews();
 
+// Connection string logika
 var renderDatabaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 var postgresConnection = builder.Configuration.GetConnectionString("PostgresConnection");
 var sqliteConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 
 string? finalConnectionString = null;
 
-if (!string.IsNullOrWhiteSpace(renderDatabaseUrl))
+try
 {
-    finalConnectionString = BuildRenderPostgresConnectionString(renderDatabaseUrl);
+    if (!string.IsNullOrWhiteSpace(renderDatabaseUrl))
+    {
+        Console.WriteLine("Using DATABASE_URL from Render");
+        finalConnectionString = BuildRenderPostgresConnectionString(renderDatabaseUrl);
+    }
+    else if (!string.IsNullOrWhiteSpace(postgresConnection))
+    {
+        Console.WriteLine("Using PostgresConnection from appsettings");
+        finalConnectionString = postgresConnection;
+    }
+    else
+    {
+        Console.WriteLine("Using SQLite fallback");
+        finalConnectionString = sqliteConnection;
+    }
 }
-else if (!string.IsNullOrWhiteSpace(postgresConnection))
+catch (Exception ex)
 {
-    finalConnectionString = postgresConnection;
-}
-else
-{
-    finalConnectionString = sqliteConnection;
+    Console.WriteLine("!!! CONNECTION STRING ERROR !!!");
+    Console.WriteLine(ex.ToString());
+    throw;
 }
 
+// DB konfiguráció
 if (!string.IsNullOrWhiteSpace(renderDatabaseUrl) || !string.IsNullOrWhiteSpace(postgresConnection))
 {
     builder.Services.AddDbContext<AppDbContext>(options =>
@@ -46,10 +69,24 @@ builder.Services.AddScoped<IProductCalculationService, ProductCalculationService
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+Console.WriteLine("=== BUILD OK ===");
+
+// 🔥 SAFE MIGRATION (NEM DÖNTI EL AZ APPOT)
+try
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    using (var scope = app.Services.CreateScope())
+    {
+        Console.WriteLine("=== DB MIGRATION START ===");
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+        Console.WriteLine("=== DB MIGRATION OK ===");
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine("!!! MIGRATION ERROR (APP STILL RUNS) !!!");
+    Console.WriteLine(ex.ToString());
+    // NEM dobjuk tovább → app nem hal meg
 }
 
 if (!app.Environment.IsDevelopment())
@@ -62,15 +99,22 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
 app.UseAuthorization();
 
+// HEALTH CHECK (nagyon fontos Renderen)
+app.MapGet("/health", () => "OK");
+
+// Default route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+Console.WriteLine("=== APP RUNNING ===");
+
 app.Run();
 
+
+// 🔧 Render DATABASE_URL → normális connection string
 static string BuildRenderPostgresConnectionString(string databaseUrl)
 {
     var uri = new Uri(databaseUrl);
