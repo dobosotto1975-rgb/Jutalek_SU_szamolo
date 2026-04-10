@@ -31,6 +31,7 @@ public class AdvisorMonthlySummaryFilterViewModel
 
     public int ReportCount { get; set; }
     public decimal TotalMonthlyAmount { get; set; }
+    public decimal TotalCumulativeAmount { get; set; }
     public decimal TotalMonthlySu { get; set; }
     public decimal TotalBaseCommission { get; set; }
     public decimal TotalBonusAmount { get; set; }
@@ -45,6 +46,7 @@ public class AdvisorMonthlySummaryRow
     public int ReportCount { get; set; }
 
     public decimal MonthlyAmount { get; set; }
+    public decimal CumulativeAmount { get; set; }
     public decimal MonthlySu { get; set; }
 
     public decimal BaseCommission { get; set; }

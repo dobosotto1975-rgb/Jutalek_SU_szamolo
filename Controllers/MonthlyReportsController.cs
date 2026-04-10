@@ -204,19 +204,30 @@ public class MonthlyReportsController : Controller
             .OrderBy(x => x.Name)
             .ToListAsync();
 
-        var reportsQuery = _context.MonthlyReports
+        var allReports = await _context.MonthlyReports
             .AsNoTracking()
             .Include(x => x.Advisor)
-            .Where(x => x.Year == selectedYear && x.Month == selectedMonth);
+            .ToListAsync();
+
+        var filteredReports = allReports
+            .Where(x => x.Year == selectedYear && x.Month == selectedMonth)
+            .ToList();
 
         if (selectedAdvisorId.HasValue)
         {
-            reportsQuery = reportsQuery.Where(x => x.AdvisorId == selectedAdvisorId.Value);
+            filteredReports = filteredReports
+                .Where(x => x.AdvisorId == selectedAdvisorId.Value)
+                .ToList();
         }
 
-        var reports = await reportsQuery.ToListAsync();
+        var cumulativeAmountByAdvisor = allReports
+            .GroupBy(x => x.AdvisorId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Sum(x => x.Amount)
+            );
 
-        var rows = reports
+        var rows = filteredReports
             .GroupBy(x => new
             {
                 x.AdvisorId,
@@ -239,29 +250,34 @@ public class MonthlyReportsController : Controller
                     bonusAmount = Math.Round(baseCommission * 0.20m, 0);
                 }
 
+                var cumulativeAmount = cumulativeAmountByAdvisor.TryGetValue(g.Key.AdvisorId, out var totalAmount)
+                    ? totalAmount
+                    : 0m;
+
                 return new AdvisorMonthlySummaryRow
                 {
                     AdvisorId = g.Key.AdvisorId,
                     AdvisorName = g.Key.AdvisorName,
                     ReportCount = g.Count(),
                     MonthlyAmount = monthlyAmount,
+                    CumulativeAmount = cumulativeAmount,
                     MonthlySu = monthlySu,
                     BaseCommission = baseCommission,
                     BonusAmount = bonusAmount,
                     FinalCommission = baseCommission + bonusAmount
                 };
             })
-            .OrderByDescending(x => x.MonthlySu)
+            .OrderByDescending(x => x.CumulativeAmount)
+            .ThenByDescending(x => x.MonthlySu)
             .ThenByDescending(x => x.FinalCommission)
             .ThenBy(x => x.AdvisorName)
             .ToList();
 
-        var yearsFromData = await _context.MonthlyReports
-            .AsNoTracking()
+        var yearsFromData = allReports
             .Select(x => x.Year)
             .Distinct()
             .OrderBy(x => x)
-            .ToListAsync();
+            .ToList();
 
         if (!yearsFromData.Any())
         {
@@ -290,13 +306,13 @@ public class MonthlyReportsController : Controller
                 .ToList(),
 
             Months = BuildMonthItems(selectedMonth),
-
             Advisors = BuildAdvisorItems(advisors, selectedAdvisorId),
 
             Rows = rows,
 
             ReportCount = rows.Sum(x => x.ReportCount),
             TotalMonthlyAmount = rows.Sum(x => x.MonthlyAmount),
+            TotalCumulativeAmount = rows.Sum(x => x.CumulativeAmount),
             TotalMonthlySu = rows.Sum(x => x.MonthlySu),
             TotalBaseCommission = rows.Sum(x => x.BaseCommission),
             TotalBonusAmount = rows.Sum(x => x.BonusAmount),

@@ -79,21 +79,21 @@
         box-sizing: border-box;
     }
 
-    .summary-select:hover {
-        border-color: rgba(141, 160, 255, 0.34);
-        background: rgba(255, 255, 255, 0.09);
-    }
+        .summary-select:hover {
+            border-color: rgba(141, 160, 255, 0.34);
+            background: rgba(255, 255, 255, 0.09);
+        }
 
-    .summary-select:focus {
-        border-color: rgba(133, 156, 255, 0.62);
-        box-shadow: 0 0 0 4px rgba(98, 115, 255, 0.14);
-        background: rgba(255, 255, 255, 0.11);
-    }
+        .summary-select:focus {
+            border-color: rgba(133, 156, 255, 0.62);
+            box-shadow: 0 0 0 4px rgba(98, 115, 255, 0.14);
+            background: rgba(255, 255, 255, 0.11);
+        }
 
-    .summary-select option {
-        color: #111827;
-        background: #ffffff;
-    }
+        .summary-select option {
+            color: #111827;
+            background: #ffffff;
+        }
 
     .summary-button-wrap {
         display: flex;
@@ -115,19 +115,19 @@
         transition: transform 0.15s ease, box-shadow 0.18s ease, opacity 0.18s ease;
     }
 
-    .summary-button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 16px 28px rgba(88, 97, 255, 0.38);
-    }
+        .summary-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 16px 28px rgba(88, 97, 255, 0.38);
+        }
 
-    .summary-button:active {
-        transform: translateY(0);
-        opacity: 0.96;
-    }
+        .summary-button:active {
+            transform: translateY(0);
+            opacity: 0.96;
+        }
 
     .summary-stats-grid {
         display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-template-columns: repeat(7, minmax(0, 1fr));
         gap: 16px;
     }
 
@@ -173,53 +173,53 @@
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
-        min-width: 1050px;
+        min-width: 1180px;
     }
 
-    .summary-table thead th {
-        padding: 14px 14px;
-        background: rgba(255, 255, 255, 0.06);
-        color: #dbe4ff;
-        font-size: 13px;
-        font-weight: 800;
-        text-align: left;
-        border-bottom: 1px solid rgba(148, 163, 184, 0.16);
-        white-space: nowrap;
-    }
+        .summary-table thead th {
+            padding: 14px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #dbe4ff;
+            font-size: 13px;
+            font-weight: 800;
+            text-align: left;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+            white-space: nowrap;
+        }
 
-    .summary-table thead th:first-child {
-        border-top-left-radius: 14px;
-    }
+            .summary-table thead th:first-child {
+                border-top-left-radius: 14px;
+            }
 
-    .summary-table thead th:last-child {
-        border-top-right-radius: 14px;
-    }
+            .summary-table thead th:last-child {
+                border-top-right-radius: 14px;
+            }
 
-    .summary-table tbody td,
-    .summary-table tfoot th,
-    .summary-table tfoot td {
-        padding: 14px 14px;
-        color: #f8fafc;
-        border-bottom: 1px solid rgba(148, 163, 184, 0.10);
-        white-space: nowrap;
-    }
+        .summary-table tbody td,
+        .summary-table tfoot th,
+        .summary-table tfoot td {
+            padding: 14px 14px;
+            color: #f8fafc;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.10);
+            white-space: nowrap;
+        }
 
-    .summary-table tbody tr:hover td {
-        background: rgba(255, 255, 255, 0.035);
-    }
+        .summary-table tbody tr:hover td {
+            background: rgba(255, 255, 255, 0.035);
+        }
 
-    .summary-table tbody tr:last-child td {
-        border-bottom: none;
-    }
+        .summary-table tbody tr:last-child td {
+            border-bottom: none;
+        }
 
-    .summary-table tfoot th,
-    .summary-table tfoot td {
-        background: rgba(255, 255, 255, 0.05);
-        font-weight: 800;
-        color: #ffffff;
-        border-top: 1px solid rgba(148, 163, 184, 0.18);
-        border-bottom: none;
-    }
+        .summary-table tfoot th,
+        .summary-table tfoot td {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 800;
+            color: #ffffff;
+            border-top: 1px solid rgba(148, 163, 184, 0.18);
+            border-bottom: none;
+        }
 
     .summary-bonus-pill {
         display: inline-flex;
@@ -242,6 +242,12 @@
         color: rgba(226, 232, 255, 0.82);
         font-size: 15px;
         font-weight: 600;
+    }
+
+    @@media (max-width: 1500px) {
+        .summary-stats-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
     }
 
     @@media (max-width: 1280px) {
@@ -299,7 +305,7 @@
 <div class="summary-page">
     <section class="summary-hero">
         <h1 class="summary-title">Tanácsadónkénti havi összesítés</h1>
-        <p class="summary-subtitle">Szűrés tanácsadóra, évre és hónapra, egységes havi jutalék összesítéssel.</p>
+        <p class="summary-subtitle">Szűrés tanácsadóra, évre és hónapra, havi és teljes állománydíj követéssel.</p>
     </section>
 
     <section class="summary-filter-card">
@@ -337,6 +343,11 @@
         </div>
 
         <div class="summary-stat-card">
+            <div class="summary-stat-label">Összesített állománydíj</div>
+            <div class="summary-stat-value">@Model.TotalCumulativeAmount.ToString("N0") Ft</div>
+        </div>
+
+        <div class="summary-stat-card">
             <div class="summary-stat-label">Összes SU</div>
             <div class="summary-stat-value">@Model.TotalMonthlySu.ToString("N2")</div>
         </div>
@@ -367,6 +378,7 @@
                             <th>Tanácsadó</th>
                             <th>Bejegyzések</th>
                             <th>Havi állománydíj</th>
+                            <th>Összesített állománydíj</th>
                             <th>SU</th>
                             <th>Alapjutalék</th>
                             <th>Bónusz sáv</th>
@@ -381,6 +393,7 @@
                                 <td>@row.AdvisorName</td>
                                 <td>@row.ReportCount</td>
                                 <td>@row.MonthlyAmount.ToString("N0") Ft</td>
+                                <td><strong>@row.CumulativeAmount.ToString("N0") Ft</strong></td>
                                 <td>@row.MonthlySu.ToString("N2")</td>
                                 <td>@row.BaseCommission.ToString("N0") Ft</td>
                                 <td>
@@ -396,6 +409,7 @@
                             <th>Mindösszesen</th>
                             <th>@Model.ReportCount</th>
                             <th>@Model.TotalMonthlyAmount.ToString("N0") Ft</th>
+                            <th>@Model.TotalCumulativeAmount.ToString("N0") Ft</th>
                             <th>@Model.TotalMonthlySu.ToString("N2")</th>
                             <th>@Model.TotalBaseCommission.ToString("N0") Ft</th>
                             <th>-</th>
