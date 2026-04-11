@@ -8,9 +8,10 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function initCustomSelects() {
-    const selects = document.querySelectorAll(".custom-select");
+    const wrappers = document.querySelectorAll(".custom-select");
+    if (!wrappers.length) return;
 
-    selects.forEach(initCustomSelect);
+    wrappers.forEach(initOneCustomSelect);
 
     document.addEventListener("click", function (e) {
         const insideSelect = e.target.closest(".custom-select");
@@ -19,7 +20,7 @@ function initCustomSelects() {
         }
     });
 
-    function initCustomSelect(wrapper) {
+    function initOneCustomSelect(wrapper) {
         const targetId = wrapper.dataset.target;
         const realSelect = document.getElementById(targetId);
         const trigger = wrapper.querySelector(".custom-select-trigger");
@@ -48,7 +49,7 @@ function initCustomSelects() {
         });
 
         search.addEventListener("input", function () {
-            filterOptions(search.value);
+            filterOptions(search.value || "");
         });
 
         options.forEach(option => {
@@ -75,32 +76,30 @@ function initCustomSelects() {
         function syncFromRealSelect() {
             const selectedOption = realSelect.options[realSelect.selectedIndex];
             if (selectedOption && selectedOption.value !== "") {
-                text.textContent = selectedOption.text;
-                options.forEach(o => {
-                    o.classList.toggle("selected", o.dataset.value === selectedOption.value);
-                });
+                text.textContent = selectedOption.textContent;
             } else {
                 text.textContent = placeholder;
-                options.forEach(o => o.classList.remove("selected"));
             }
-        }
-
-        function filterOptions(term) {
-            const normalized = (term || "").trim().toLowerCase();
-            let visibleCount = 0;
 
             options.forEach(option => {
-                const content = (option.dataset.text || "").toLowerCase();
-                const visible = content.includes(normalized);
-                option.classList.toggle("hidden", !visible);
+                const isSelected = option.dataset.value === realSelect.value;
+                option.classList.toggle("selected", isSelected);
+            });
+        }
 
-                if (visible) {
-                    visibleCount++;
-                }
+        function filterOptions(searchText) {
+            const query = normalizeText(searchText);
+
+            let visibleCount = 0;
+            options.forEach(option => {
+                const label = normalizeText(option.dataset.text || option.textContent || "");
+                const visible = !query || label.includes(query);
+                option.classList.toggle("hidden", !visible);
+                if (visible) visibleCount++;
             });
 
             let empty = wrapper.querySelector(".custom-select-empty");
-            if (visibleCount === 0) {
+            if (!visibleCount) {
                 if (!empty) {
                     empty = document.createElement("div");
                     empty.className = "custom-select-empty";
@@ -112,92 +111,79 @@ function initCustomSelects() {
             }
         }
     }
-
-    function closeAllCustomSelects() {
-        document.querySelectorAll(".custom-select.open").forEach(x => x.classList.remove("open"));
-    }
 }
 
-function getYesProducts() {
-    return [
-        "Vienna Yes alapdíj, ha a teljes díj  120e Ft-ig /állománydíjas/",
-        "Vienna Yes alapdíj, ha a teljes díj 120-145e Ft között /állománydíjas/",
-        "Vienna Yes alapdíj, ha a teljes díj 145e Ft-tól /állománydíjas/"
-    ];
-}
-
-function isYesProduct(product) {
-    return getYesProducts().includes((product || "").trim());
+function closeAllCustomSelects() {
+    document.querySelectorAll(".custom-select.open").forEach(x => x.classList.remove("open"));
 }
 
 function initUkQuestion() {
     const productInput = document.getElementById("Product");
-    const ukQuestionWrap = document.getElementById("ukQuestionWrap");
+    const ukWrap = document.getElementById("ukQuestionWrap");
     const ukSelect = document.getElementById("ukSelect");
 
-    if (!productInput || !ukQuestionWrap || !ukSelect || !window.productRules) {
-        return;
-    }
+    if (!productInput || !ukWrap) return;
 
-    const toggleUkQuestion = () => {
+    const toggleUk = () => {
         const product = (productInput.value || "").trim();
-        const rule = window.productRules[product];
-        const requiresUkQuestion = !!(rule && rule.requiresUkQuestion);
+        const rules = window.productRules || {};
+        const rule = rules[product];
 
-        if (requiresUkQuestion) {
-            ukQuestionWrap.style.display = "block";
-        } else {
-            ukQuestionWrap.style.display = "none";
+        const needsUk = !!(rule && rule.requiresUkQuestion);
+        ukWrap.style.display = needsUk ? "block" : "none";
+
+        if (!needsUk && ukSelect) {
             ukSelect.value = "false";
+            ukSelect.dispatchEvent(new Event("change", { bubbles: true }));
         }
     };
 
-    toggleUkQuestion();
-    productInput.addEventListener("change", toggleUkQuestion);
+    productInput.addEventListener("change", toggleUk);
+    toggleUk();
 }
 
 function initYesProductFields() {
     const productInput = document.getElementById("Product");
-    const yesWrap = document.getElementById("yesFieldsWrap");
+    const yesSection = document.getElementById("yesProductSection");
+
     const fullBaseInput = document.getElementById("YesFullBaseAmount");
     const fullTotalInput = document.getElementById("YesFullTotalAmount");
     const discountInput = document.getElementById("YesDiscountPercent");
+
     const fullSupplementInput = document.getElementById("YesFullSupplementAmount");
     const discountedBaseInput = document.getElementById("YesDiscountedBaseAmount");
     const discountedSupplementInput = document.getElementById("YesDiscountedSupplementAmount");
     const discountedTotalInput = document.getElementById("YesDiscountedTotalAmount");
 
-    if (!productInput || !yesWrap) {
-        return;
-    }
+    if (!productInput || !yesSection) return;
+
+    const isViennaYes = (value) => {
+        return normalizeText(value).includes("vienna yes");
+    };
+
+    const toggleYesSection = () => {
+        yesSection.style.display = isViennaYes(productInput.value) ? "block" : "none";
+        recalculateYesFields();
+    };
 
     const recalculateYesFields = () => {
-        const product = (productInput.value || "").trim();
-        const visible = isYesProduct(product);
-
-        yesWrap.style.display = visible ? "block" : "none";
-
-        if (!visible) {
-            clearOutput(fullSupplementInput);
-            clearOutput(discountedBaseInput);
-            clearOutput(discountedSupplementInput);
-            clearOutput(discountedTotalInput);
-
-            if (fullBaseInput) fullBaseInput.value = "";
-            if (fullTotalInput) fullTotalInput.value = "";
-            if (discountInput) discountInput.value = "";
+        if (!isViennaYes(productInput.value)) {
+            setOutput(fullSupplementInput, 0, 2);
+            setOutput(discountedBaseInput, 0, 2);
+            setOutput(discountedSupplementInput, 0, 2);
+            setOutput(discountedTotalInput, 0, 2);
             return;
         }
 
-        const fullBase = parseHungarianNumber(fullBaseInput ? fullBaseInput.value : "");
-        const fullTotal = parseHungarianNumber(fullTotalInput ? fullTotalInput.value : "");
-        const discountPercent = parseHungarianNumber(discountInput ? discountInput.value : "");
+        const fullBase = parseHungarianNumber(fullBaseInput?.value);
+        const fullTotal = parseHungarianNumber(fullTotalInput?.value);
+        const discountPercent = parseHungarianNumber(discountInput?.value);
 
         if (fullTotal < fullBase) {
-            clearOutput(fullSupplementInput);
-            clearOutput(discountedBaseInput);
-            clearOutput(discountedSupplementInput);
-            clearOutput(discountedTotalInput);
+            setOutput(fullSupplementInput, 0, 2);
+            setOutput(discountedBaseInput, 0, 2);
+            setOutput(discountedSupplementInput, 0, 2);
+            setOutput(discountedTotalInput, 0, 2);
             return;
         }
 
@@ -213,60 +199,61 @@ function initYesProductFields() {
         setOutput(discountedTotalInput, discountedTotal, 2);
     };
 
-    productInput.addEventListener("change", recalculateYesFields);
+    productInput.addEventListener("change", toggleYesSection);
 
-    if (fullBaseInput) {
-        fullBaseInput.addEventListener("input", recalculateYesFields);
-        fullBaseInput.addEventListener("change", recalculateYesFields);
-    }
+    [fullBaseInput, fullTotalInput, discountInput].forEach(input => {
+        if (!input) return;
+        input.addEventListener("input", recalculateYesFields);
+        input.addEventListener("change", recalculateYesFields);
+    });
 
-    if (fullTotalInput) {
-        fullTotalInput.addEventListener("input", recalculateYesFields);
-        fullTotalInput.addEventListener("change", recalculateYesFields);
-    }
-
-    if (discountInput) {
-        discountInput.addEventListener("input", recalculateYesFields);
-        discountInput.addEventListener("change", recalculateYesFields);
-    }
-
-    recalculateYesFields();
+    toggleYesSection();
 }
 
 function initCalculator() {
     const productInput = document.getElementById("Product");
     const amountInput = document.getElementById("Amount");
     const ukSelect = document.getElementById("ukSelect");
-    const commissionInput = document.getElementById("Commission");
-    const suInput = document.getElementById("Su");
-    const commissionPercentInput = document.getElementById("CommissionPercent");
-    const dividerInput = document.getElementById("Divider");
 
-    if (!productInput || !amountInput || !window.productRules) {
-        return;
-    }
+    const commissionElement = document.getElementById("Commission");
+    const suElement = document.getElementById("Su");
+    const commissionPercentElement = document.getElementById("CommissionPercent");
+    const dividerElement = document.getElementById("Divider");
+
+    const suMeterFill = document.getElementById("SuMeterFill");
+    const suStatus = document.getElementById("SuStatus");
+
+    if (!productInput || !amountInput) return;
 
     const recalculate = () => {
+        const rules = window.productRules || {};
         const product = (productInput.value || "").trim();
         const amount = parseHungarianNumber(amountInput.value);
-        const isUkContract = ukSelect ? (ukSelect.value === "true") : false;
+        const isUkContract = ukSelect ? ukSelect.value === "true" : false;
 
-        clearOutput(commissionInput);
-        clearOutput(suInput);
-        clearOutput(commissionPercentInput);
-        clearOutput(dividerInput);
+        setText(commissionElement, "0");
+        setText(suElement, "0");
+        setText(commissionPercentElement, "0");
+        setText(dividerElement, "0");
 
-        if (!product || amount <= 0) {
-            return;
+        if (suMeterFill) {
+            suMeterFill.style.width = "0%";
+            suMeterFill.className = "su-meter-fill";
         }
 
-        const rule = window.productRules[product];
-        if (!rule) {
-            return;
+        if (suStatus) {
+            suStatus.textContent = "Nincs bónusz sávban";
+            suStatus.className = "su-status";
         }
+
+        if (!product || amount <= 0) return;
+
+        const rule = rules[product];
+        if (!rule) return;
 
         let commission = 0;
         let su = 0;
+
         const divisor = Number(rule.divisor || 0);
         const percentDecimal = Number(rule.percent || 0);
         const percentDisplay = percentDecimal * 100;
@@ -283,10 +270,12 @@ function initCalculator() {
             commission = 0;
         }
 
-        setOutput(commissionInput, commission, 0);
-        setOutput(suInput, su, 4);
-        setOutput(commissionPercentInput, percentDisplay, 2);
-        setOutput(dividerInput, divisor, 2);
+        setText(commissionElement, formatNumberHu(commission, 0));
+        setText(suElement, formatNumberHu(su, 2));
+        setText(commissionPercentElement, formatNumberHu(percentDisplay, 2));
+        setText(dividerElement, formatNumberHu(divisor, 2));
+
+        updateSuMeter(su, suMeterFill, suStatus);
     };
 
     productInput.addEventListener("change", recalculate);
@@ -300,15 +289,36 @@ function initCalculator() {
     recalculate();
 }
 
-function parseHungarianNumber(value) {
-    if (!value) {
-        return 0;
-    }
+function updateSuMeter(su, fill, status) {
+    if (!fill || !status) return;
 
-    let text = value.toString().trim().replace(/\s/g, "");
-    if (!text) {
-        return 0;
+    const maxVisual = 9;
+    const percent = Math.max(0, Math.min((su / maxVisual) * 100, 100));
+    fill.style.width = percent + "%";
+
+    fill.classList.remove("warning", "success");
+    status.classList.remove("warning", "success");
+
+    if (su >= 9) {
+        fill.classList.add("success");
+        status.classList.add("success");
+        status.textContent = "9 SU felett – felső bónuszsáv";
+    } else if (su >= 4.5) {
+        fill.classList.add("warning");
+        status.classList.add("warning");
+        status.textContent = "4,5 SU felett – középső bónuszsáv";
+    } else {
+        status.textContent = "Nincs bónusz sávban";
     }
+}
+
+function parseHungarianNumber(value) {
+    if (value === null || value === undefined) return 0;
+
+    let text = value.toString().trim();
+    if (!text) return 0;
+
+    text = text.replace(/\s/g, "");
 
     const hasComma = text.includes(",");
     const hasDot = text.includes(".");
@@ -323,37 +333,31 @@ function parseHungarianNumber(value) {
             text = text.replace(/,/g, "");
         }
     } else if (hasComma) {
-        text = text.replace(/\./g, "").replace(",", ".");
-    } else {
-        const parts = text.split(".");
-        if (parts.length > 2) {
-            const decimalPart = parts.pop();
-            text = parts.join("") + "." + decimalPart;
-        }
+        text = text.replace(",", ".");
     }
 
-    const parsed = parseFloat(text);
-    return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-function roundNumber(value, decimals) {
-    const factor = Math.pow(10, decimals);
-    const rounded = Math.round((value + Number.EPSILON) * factor) / factor;
-    return rounded.toFixed(decimals).replace(".", ",");
+    const parsed = Number(text);
+    return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function setOutput(element, value, decimals) {
-    if (!element) {
-        return;
-    }
-
-    element.value = roundNumber(value, decimals);
+    if (!element) return;
+    element.value = formatNumberHu(value, decimals);
 }
 
-function clearOutput(element) {
-    if (!element) {
-        return;
-    }
+function setText(element, value) {
+    if (!element) return;
+    element.textContent = value;
+}
 
-    element.value = "0";
+function formatNumberHu(value, decimals) {
+    const numeric = Number(value || 0);
+    return numeric.toLocaleString("hu-HU", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+    });
+}
+
+function normalizeText(value) {
+    return (value || "").toString().toLowerCase().trim();
 }
