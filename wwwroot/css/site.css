@@ -147,6 +147,7 @@ a {
         color: #f4f8ff;
     }
 
+/* INPUTS + SELECTS */
 .input-modern,
 .result-output,
 textarea,
@@ -166,6 +167,44 @@ input[type="date"] {
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 
+    /* NATÍV LENYÍLÓK SZÉPÍTÉSE */
+    select,
+    select.input-modern {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-color: rgba(255,255,255,0.06);
+        background-image: linear-gradient(45deg, transparent 50%, #dbe7ff 50%), linear-gradient(135deg, #dbe7ff 50%, transparent 50%);
+        background-position: calc(100% - 18px) calc(50% - 3px), calc(100% - 12px) calc(50% - 3px);
+        background-size: 6px 6px, 6px 6px;
+        background-repeat: no-repeat;
+        padding-right: 42px;
+        cursor: pointer;
+    }
+
+        select::-ms-expand {
+            display: none;
+        }
+
+        select:hover,
+        select.input-modern:hover {
+            border-color: rgba(108,140,255,0.55);
+            background-color: rgba(255,255,255,0.08);
+        }
+
+        select:focus,
+        select.input-modern:focus {
+            border-color: rgba(108,140,255,0.80);
+            box-shadow: 0 0 0 4px rgba(108,140,255,0.14);
+            background-color: rgba(255,255,255,0.10);
+        }
+
+/* OPTIONÖK */
+option {
+    background: #162447;
+    color: #eef4ff;
+}
+
 textarea {
     min-height: 120px;
     padding-top: 12px;
@@ -174,7 +213,6 @@ textarea {
 
     .input-modern:focus,
     textarea:focus,
-    select:focus,
     input[type="text"]:focus,
     input[type="number"]:focus,
     input[type="date"]:focus {
