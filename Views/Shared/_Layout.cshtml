@@ -3,41 +3,43 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - AdvisorDashboard</title>
-
-    <link rel="stylesheet" href="~/css/site.css" />
-
+    <title>@ViewData["Title"] - AdvisorDashboardApp</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-
-    <!-- 🔥 FELSŐ SÁV -->
     <header class="topbar">
         <div class="container topbar-inner">
-
-            <div class="brand">
-                Advisor Dashboard
-            </div>
+            <a class="brand" asp-controller="Home" asp-action="Index">AdvisorDashboard</a>
 
             <nav class="nav">
                 <a asp-controller="Home" asp-action="Index">Dashboard</a>
                 <a asp-controller="DataEntry" asp-action="Index">Adatfelvitel</a>
-                <a asp-controller="MonthlyReports" asp-action="Index">Riportok</a>
+                <a asp-controller="Advisors" asp-action="Index">Tanácsadók</a>
+                <a asp-controller="MonthlyReports" asp-action="Index">Havi adatok</a>
+                <a asp-controller="MonthlyReports" asp-action="Summary">Összesítő</a>
+                <a asp-controller="MonthlyReports" asp-action="AdvisorMonthlySummary">Tanácsadói havi összesítés</a>
             </nav>
-
         </div>
     </header>
 
-    <!-- 🔥 EZ A LÉNYEG: STABIL KERET -->
-    <main class="main-content">
-        <div class="container">
-            @RenderBody()
-        </div>
+    <main class="container main-content">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert-success">@TempData["Success"]</div>
+        }
+
+        @RenderBody()
     </main>
 
-    <!-- 🔥 SCRIPT -->
-    <script src="~/js/site.js"></script>
+    <footer class="footer">
+        <div class="container footer-inner">
+            <span>© @DateTime.Now.Year AdvisorDashboard</span>
+            <span>C# ASP.NET Core MVC</span>
+        </div>
+    </footer>
 
-    @RenderSection("Scripts", required: false)
-
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
