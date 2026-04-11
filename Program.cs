@@ -93,7 +93,7 @@ Console.WriteLine("=== BUILD OK ===");
 
 app.UseForwardedHeaders();
 
-// MIGRATION csak helyi SQLite fejlesztéshez
+// SQLITE migráció helyben
 if (!usePostgres)
 {
     try

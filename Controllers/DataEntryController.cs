@@ -88,13 +88,14 @@ public class DataEntryController : Controller
             TempData["Success"] = "Az adat sikeresen rögzítve lett.";
             return RedirectToAction(nameof(Index));
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException ex)
         {
-            ModelState.AddModelError(string.Empty, "Az adatbázisba mentés nem sikerült. Ellenőrizd a megadott adatokat és az adatbázis kapcsolatot.");
+            var dbMessage = ex.InnerException?.Message ?? ex.Message;
+            ModelState.AddModelError(string.Empty, $"Az adatbázisba mentés nem sikerült: {dbMessage}");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ModelState.AddModelError(string.Empty, "Váratlan hiba történt mentés közben.");
+            ModelState.AddModelError(string.Empty, $"Váratlan hiba történt mentés közben: {ex.Message}");
         }
 
         model = await BuildViewModelAsync(model);
@@ -165,7 +166,7 @@ public class DataEntryController : Controller
             })
             .ToList();
 
-        model.Product = selectedProduct;
+        model.Product = selectedProduct ?? string.Empty;
 
         ApplyYesCalculations(model);
 
