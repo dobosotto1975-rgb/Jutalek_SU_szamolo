@@ -11,144 +11,159 @@
     </div>
 </div>
 
-<section class="panel">
+<section class="entry-shell">
+    <div class="entry-header">
+        <h2>Új havi termelési adat</h2>
+        <p>Válaszd ki a tanácsadót, az időszakot és a terméket, add meg az állománydíjat, és az eredmények azonnal frissülnek.</p>
+    </div>
+
     <form asp-action="Index" method="post" class="entry-form">
         @Html.AntiForgeryToken()
 
-        <div asp-validation-summary="ModelOnly" class="text-danger validation-summary"></div>
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
 
-        <div class="panel-header">
-            <h2>Új havi termelési adat</h2>
-            <p class="panel-subtitle">
-                Válaszd ki a tanácsadót, az időszakot és a terméket, add meg az állománydíjat, és az eredmények azonnal frissülnek.
-            </p>
-        </div>
+        <div class="entry-grid">
+            <div class="entry-main">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label asp-for="AdvisorId">Tanácsadó</label>
+                        <select asp-for="AdvisorId" asp-items="Model.Advisors" class="input-modern">
+                            <option value="">Válassz tanácsadót</option>
+                        </select>
+                        <span asp-validation-for="AdvisorId" class="validation-text"></span>
+                    </div>
 
-        <div class="form-grid">
-            <div class="form-field">
-                <label asp-for="AdvisorId">Tanácsadó</label>
-                <select asp-for="AdvisorId" asp-items="Model.Advisors" class="form-control">
-                    <option value="">Válassz tanácsadót</option>
-                </select>
-                <span asp-validation-for="AdvisorId" class="text-danger"></span>
-            </div>
+                    <div class="form-field">
+                        <label asp-for="Year">Év</label>
+                        <select asp-for="Year" asp-items="Model.Years" class="input-modern"></select>
+                        <span asp-validation-for="Year" class="validation-text"></span>
+                    </div>
 
-            <div class="form-field">
-                <label asp-for="Year">Év</label>
-                <select asp-for="Year" asp-items="Model.Years" class="form-control"></select>
-                <span asp-validation-for="Year" class="text-danger"></span>
-            </div>
+                    <div class="form-field">
+                        <label asp-for="Month">Hónap</label>
+                        <select asp-for="Month" asp-items="Model.Months" class="input-modern"></select>
+                        <span asp-validation-for="Month" class="validation-text"></span>
+                    </div>
 
-            <div class="form-field">
-                <label asp-for="Month">Hónap</label>
-                <select asp-for="Month" asp-items="Model.Months" class="form-control"></select>
-                <span asp-validation-for="Month" class="text-danger"></span>
-            </div>
+                    <div class="form-field full-width">
+                        <label asp-for="Product">Termék</label>
+                        <select asp-for="Product" asp-items="Model.Products" class="input-modern" id="Product"></select>
+                        <span asp-validation-for="Product" class="validation-text"></span>
+                    </div>
 
-            <div class="form-field full-width">
-                <label asp-for="Product">Termék</label>
-                <select asp-for="Product" asp-items="Model.Products" class="form-control" id="Product"></select>
-                <span asp-validation-for="Product" class="text-danger"></span>
-            </div>
+                    <div class="form-field full-width">
+                        <label asp-for="Amount">Állománydíj (Ft)</label>
+                        <input asp-for="Amount" id="Amount" class="input-modern" type="number" step="0.01" />
+                        <span asp-validation-for="Amount" class="validation-text"></span>
+                    </div>
 
-            <div class="form-field">
-                <label asp-for="Amount">Állománydíj</label>
-                <input asp-for="Amount" id="Amount" class="form-control" />
-                <span asp-validation-for="Amount" class="text-danger"></span>
-            </div>
+                    <div class="form-field">
+                        <label asp-for="ContractStartDate">Kötés kezdete</label>
+                        <input asp-for="ContractStartDate" type="date" class="input-modern" />
+                        <span asp-validation-for="ContractStartDate" class="validation-text"></span>
+                    </div>
 
-            <div class="form-field">
-                <label asp-for="ContractStartDate">Kötés kezdete</label>
-                <input asp-for="ContractStartDate" type="date" class="form-control" />
-                <span asp-validation-for="ContractStartDate" class="text-danger"></span>
-            </div>
+                    <div class="form-field">
+                        <label asp-for="IsPremiumPaid">Díjrendezett-e</label>
+                        <select asp-for="IsPremiumPaid" class="input-modern">
+                            <option value="true">Igen</option>
+                            <option value="false">Nem</option>
+                        </select>
+                        <span asp-validation-for="IsPremiumPaid" class="validation-text"></span>
+                    </div>
 
-            <div class="form-field">
-                <label asp-for="IsPremiumPaid">Díjrendezett-e</label>
-                <select asp-for="IsPremiumPaid" class="form-control">
-                    <option value="true">Igen</option>
-                    <option value="false">Nem</option>
-                </select>
-                <span asp-validation-for="IsPremiumPaid" class="text-danger"></span>
-            </div>
-
-            <div class="form-field" id="ukQuestionWrap" style="display:none;">
-                <label asp-for="IsUkContract">ÜK-s kötés</label>
-                <select asp-for="IsUkContract" class="form-control" id="ukSelect">
-                    <option value="false">Nem</option>
-                    <option value="true">Igen</option>
-                </select>
-            </div>
-        </div>
-
-        <div id="yesFieldsWrap" class="yes-section" style="display:none;">
-            <h3>Vienna Yes kiegészítő adatok</h3>
-
-            <div class="form-grid">
-                <div class="form-field">
-                    <label asp-for="YesFullBaseAmount">Teljes alapdíj</label>
-                    <input asp-for="YesFullBaseAmount" id="YesFullBaseAmount" class="form-control" />
-                    <span asp-validation-for="YesFullBaseAmount" class="text-danger"></span>
+                    <div class="form-field full-width" id="ukQuestionWrap" style="display:none;">
+                        <label asp-for="IsUkContract">ÜK-s kötés</label>
+                        <select asp-for="IsUkContract" class="input-modern" id="ukSelect">
+                            <option value="false">Nem</option>
+                            <option value="true">Igen</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="form-field">
-                    <label asp-for="YesFullTotalAmount">Teljes összes díj</label>
-                    <input asp-for="YesFullTotalAmount" id="YesFullTotalAmount" class="form-control" />
-                    <span asp-validation-for="YesFullTotalAmount" class="text-danger"></span>
+                <div id="yesFieldsWrap" class="yes-panel" style="display:none;">
+                    <h3>Vienna Yes kiegészítő adatok</h3>
+
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label asp-for="YesFullBaseAmount">Teljes alapdíj</label>
+                            <input asp-for="YesFullBaseAmount" id="YesFullBaseAmount" class="input-modern" type="number" step="0.01" />
+                            <span asp-validation-for="YesFullBaseAmount" class="validation-text"></span>
+                        </div>
+
+                        <div class="form-field">
+                            <label asp-for="YesFullTotalAmount">Teljes összes díj</label>
+                            <input asp-for="YesFullTotalAmount" id="YesFullTotalAmount" class="input-modern" type="number" step="0.01" />
+                            <span asp-validation-for="YesFullTotalAmount" class="validation-text"></span>
+                        </div>
+
+                        <div class="form-field full-width">
+                            <label asp-for="YesDiscountPercent">Kedvezmény %</label>
+                            <input asp-for="YesDiscountPercent" id="YesDiscountPercent" class="input-modern" type="number" step="0.01" />
+                            <span asp-validation-for="YesDiscountPercent" class="validation-text"></span>
+                        </div>
+
+                        <div class="form-field">
+                            <label>Kiegészítő díj</label>
+                            <input id="YesFullSupplementAmount" class="input-modern readonly-modern" value="@Model.YesFullSupplementAmount.ToString("0.##")" readonly />
+                        </div>
+
+                        <div class="form-field">
+                            <label>Kedvezményes alapdíj</label>
+                            <input id="YesDiscountedBaseAmount" class="input-modern readonly-modern" value="@Model.YesDiscountedBaseAmount.ToString("0.##")" readonly />
+                        </div>
+
+                        <div class="form-field">
+                            <label>Kedvezményes kiegészítő díj</label>
+                            <input id="YesDiscountedSupplementAmount" class="input-modern readonly-modern" value="@Model.YesDiscountedSupplementAmount.ToString("0.##")" readonly />
+                        </div>
+
+                        <div class="form-field">
+                            <label>Kedvezményes teljes díj</label>
+                            <input id="YesDiscountedTotalAmount" class="input-modern readonly-modern" value="@Model.YesDiscountedTotalAmount.ToString("0.##")" readonly />
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-field">
-                    <label asp-for="YesDiscountPercent">Kedvezmény %</label>
-                    <input asp-for="YesDiscountPercent" id="YesDiscountPercent" class="form-control" />
-                    <span asp-validation-for="YesDiscountPercent" class="text-danger"></span>
-                </div>
-
-                <div class="form-field">
-                    <label>Kiegészítő díj</label>
-                    <input id="YesFullSupplementAmount" value="@Model.YesFullSupplementAmount.ToString("0.##")" class="form-control" readonly />
-                </div>
-
-                <div class="form-field">
-                    <label>Kedvezményes alapdíj</label>
-                    <input id="YesDiscountedBaseAmount" value="@Model.YesDiscountedBaseAmount.ToString("0.##")" class="form-control" readonly />
-                </div>
-
-                <div class="form-field">
-                    <label>Kedvezményes kiegészítő díj</label>
-                    <input id="YesDiscountedSupplementAmount" value="@Model.YesDiscountedSupplementAmount.ToString("0.##")" class="form-control" readonly />
-                </div>
-
-                <div class="form-field">
-                    <label>Kedvezményes teljes díj</label>
-                    <input id="YesDiscountedTotalAmount" value="@Model.YesDiscountedTotalAmount.ToString("0.##")" class="form-control" readonly />
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Mentés</button>
                 </div>
             </div>
-        </div>
 
-        <div class="result-cards">
-            <div class="result-card">
-                <div class="result-label">Jutalék %</div>
-                <input id="CommissionPercent" class="form-control result-output" value="@Model.CommissionPercent.ToString("0.##")" readonly />
-            </div>
+            <aside class="entry-side">
+                <div class="result-panel">
+                    <div class="result-panel-title">Élő eredmény</div>
 
-            <div class="result-card">
-                <div class="result-label">Osztó</div>
-                <input id="Divider" class="form-control result-output" value="@Model.Divider.ToString("0.##")" readonly />
-            </div>
+                    <div class="result-card">
+                        <div class="result-label">Jutalék %</div>
+                        <input id="CommissionPercent" class="result-output" value="@Model.CommissionPercent.ToString("0.##")" readonly />
+                    </div>
 
-            <div class="result-card">
-                <div class="result-label">Számolt jutalék</div>
-                <input id="Commission" class="form-control result-output" value="@Model.CalculatedCommission.ToString("0")" readonly />
-            </div>
+                    <div class="result-card">
+                        <div class="result-label">Osztó</div>
+                        <input id="Divider" class="result-output" value="@Model.Divider.ToString("0.##")" readonly />
+                    </div>
 
-            <div class="result-card">
-                <div class="result-label">SU</div>
-                <input id="Su" class="form-control result-output" value="@Model.CalculatedSu.ToString("0.####")" readonly />
-            </div>
-        </div>
+                    <div class="result-card">
+                        <div class="result-label">Számolt jutalék</div>
+                        <input id="Commission" class="result-output" value="@Model.CalculatedCommission.ToString("0")" readonly />
+                    </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Mentés</button>
+                    <div class="result-card">
+                        <div class="result-label">SU</div>
+                        <input id="Su" class="result-output" value="@Model.CalculatedSu.ToString("0.####")" readonly />
+                    </div>
+
+                    <div class="help-box">
+                        <div class="help-box-title">Gyors segítség</div>
+                        <ul>
+                            <li>4,5 SU alatt nincs bónusz.</li>
+                            <li>4,5 SU-tól középső bónuszsáv indul.</li>
+                            <li>9 SU-tól felső bónuszsáv lép életbe.</li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
         </div>
     </form>
 </section>
