@@ -64,6 +64,8 @@ public class DataEntryController : Controller
 
         var calc = _productCalculationService.Calculate(canonicalProduct, model.Amount, model.IsUkContract);
 
+        var normalizedContractStartDate = NormalizeToUtc(model.ContractStartDate);
+
         var report = new MonthlyReport
         {
             AdvisorId = model.AdvisorId,
@@ -76,7 +78,7 @@ public class DataEntryController : Controller
             Commission = calc.Commission,
             Su = calc.Su,
             IsUkContract = calc.IsUkContract,
-            ContractStartDate = model.ContractStartDate,
+            ContractStartDate = normalizedContractStartDate,
             IsPremiumPaid = model.IsPremiumPaid
         };
 
@@ -224,6 +226,16 @@ public class DataEntryController : Controller
         model.YesDiscountedBaseAmount = Math.Round(discountedBase, 2);
         model.YesDiscountedSupplementAmount = Math.Round(discountedSupplement, 2);
         model.YesDiscountedTotalAmount = Math.Round(discountedTotal, 2);
+    }
+
+    private static DateTime? NormalizeToUtc(DateTime? value)
+    {
+        if (!value.HasValue)
+            return null;
+
+        var date = value.Value.Date;
+
+        return DateTime.SpecifyKind(date, DateTimeKind.Utc);
     }
 
     private void LoadRuleJson()
