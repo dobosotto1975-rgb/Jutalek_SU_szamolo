@@ -6,165 +6,227 @@ document.addEventListener("DOMContentLoaded", function () {
     initCalculator();
 });
 
+function getYesProducts() {
+    return [
+        "Vienna Yes alapdíj, ha a teljes díj  120e Ft-ig /állománydíjas/",
+        "Vienna Yes alapdíj, ha a teljes díj 120-145e Ft között /állománydíjas/",
+        "Vienna Yes alapdíj, ha a teljes díj 145e Ft-tól /állománydíjas/"
+    ];
+}
+
+function isYesProduct(product) {
+    return getYesProducts().includes((product || "").trim());
+}
+
 function initUkQuestion() {
-    const product = document.getElementById("Product");
-    const wrap = document.getElementById("ukQuestionWrap");
+    const productInput = document.getElementById("Product");
+    const ukQuestionWrap = document.getElementById("ukQuestionWrap");
     const ukSelect = document.getElementById("ukSelect");
 
-    if (!product || !wrap) return;
+    if (!productInput || !ukQuestionWrap || !ukSelect || !window.productRules) {
+        return;
+    }
 
-    const toggle = () => {
-        const value = (product.value || "").toLowerCase();
-        const needsUk =
-            value.includes("vienna yes") ||
-            value.includes("ük") ||
-            value.includes("uk");
+    const toggleUkQuestion = () => {
+        const product = (productInput.value || "").trim();
+        const rule = window.productRules[product];
+        const requiresUkQuestion = !!(rule && rule.requiresUkQuestion);
 
-        wrap.style.display = needsUk ? "block" : "none";
-
-        if (!needsUk && ukSelect) {
+        if (requiresUkQuestion) {
+            ukQuestionWrap.style.display = "block";
+        } else {
+            ukQuestionWrap.style.display = "none";
             ukSelect.value = "false";
-            ukSelect.dispatchEvent(new Event("change", { bubbles: true }));
         }
     };
 
-    product.addEventListener("change", toggle);
-    toggle();
+    toggleUkQuestion();
+    productInput.addEventListener("change", toggleUkQuestion);
 }
 
 function initYesProductFields() {
-    const product = document.getElementById("Product");
-    const section = document.getElementById("yesFieldsWrap");
+    const productInput = document.getElementById("Product");
+    const yesWrap = document.getElementById("yesFieldsWrap");
+    const fullBaseInput = document.getElementById("YesFullBaseAmount");
+    const fullTotalInput = document.getElementById("YesFullTotalAmount");
+    const discountInput = document.getElementById("YesDiscountPercent");
+    const fullSupplementInput = document.getElementById("YesFullSupplementAmount");
+    const discountedBaseInput = document.getElementById("YesDiscountedBaseAmount");
+    const discountedSupplementInput = document.getElementById("YesDiscountedSupplementAmount");
+    const discountedTotalInput = document.getElementById("YesDiscountedTotalAmount");
 
-    const base = document.getElementById("YesFullBaseAmount");
-    const total = document.getElementById("YesFullTotalAmount");
-    const discount = document.getElementById("YesDiscountPercent");
+    if (!productInput || !yesWrap) {
+        return;
+    }
 
-    const out1 = document.getElementById("YesFullSupplementAmount");
-    const out2 = document.getElementById("YesDiscountedBaseAmount");
-    const out3 = document.getElementById("YesDiscountedSupplementAmount");
-    const out4 = document.getElementById("YesDiscountedTotalAmount");
+    const recalculateYesFields = () => {
+        const product = (productInput.value || "").trim();
+        const visible = isYesProduct(product);
 
-    if (!product || !section) return;
+        yesWrap.style.display = visible ? "block" : "none";
 
-    const isYesProduct = () => {
-        return (product.value || "").toLowerCase().includes("vienna yes");
-    };
+        if (!visible) {
+            clearOutput(fullSupplementInput);
+            clearOutput(discountedBaseInput);
+            clearOutput(discountedSupplementInput);
+            clearOutput(discountedTotalInput);
 
-    const recalc = () => {
-        const show = isYesProduct();
-        section.style.display = show ? "block" : "none";
-
-        if (!show) {
-            if (out1) out1.value = "0";
-            if (out2) out2.value = "0";
-            if (out3) out3.value = "0";
-            if (out4) out4.value = "0";
+            if (fullBaseInput) fullBaseInput.value = "";
+            if (fullTotalInput) fullTotalInput.value = "";
+            if (discountInput) discountInput.value = "";
             return;
         }
 
-        const b = parseHuNumber(base?.value);
-        const t = parseHuNumber(total?.value);
-        const d = parseHuNumber(discount?.value) / 100;
+        const fullBase = parseHungarianNumber(fullBaseInput ? fullBaseInput.value : "");
+        const fullTotal = parseHungarianNumber(fullTotalInput ? fullTotalInput.value : "");
+        const discountPercent = parseHungarianNumber(discountInput ? discountInput.value : "");
 
-        const supplement = Math.max(0, t - b);
-        const discountedBase = b * (1 - d);
-        const discountedSupplement = supplement * (1 - d);
+        if (fullTotal < fullBase) {
+            clearOutput(fullSupplementInput);
+            clearOutput(discountedBaseInput);
+            clearOutput(discountedSupplementInput);
+            clearOutput(discountedTotalInput);
+            return;
+        }
+
+        const discountRate = discountPercent / 100;
+        const supplement = fullTotal - fullBase;
+        const discountedBase = fullBase * (1 - discountRate);
+        const discountedSupplement = supplement * (1 - discountRate);
         const discountedTotal = discountedBase + discountedSupplement;
 
-        if (out1) out1.value = formatHu(supplement, 2);
-        if (out2) out2.value = formatHu(discountedBase, 2);
-        if (out3) out3.value = formatHu(discountedSupplement, 2);
-        if (out4) out4.value = formatHu(discountedTotal, 2);
+        setOutput(fullSupplementInput, supplement, 2);
+        setOutput(discountedBaseInput, discountedBase, 2);
+        setOutput(discountedSupplementInput, discountedSupplement, 2);
+        setOutput(discountedTotalInput, discountedTotal, 2);
     };
 
-    [base, total, discount].forEach(i => {
-        if (i) {
-            i.addEventListener("input", recalc);
-            i.addEventListener("change", recalc);
-        }
-    });
+    productInput.addEventListener("change", recalculateYesFields);
 
-    product.addEventListener("change", recalc);
-    recalc();
+    if (fullBaseInput) {
+        fullBaseInput.addEventListener("input", recalculateYesFields);
+        fullBaseInput.addEventListener("change", recalculateYesFields);
+    }
+
+    if (fullTotalInput) {
+        fullTotalInput.addEventListener("input", recalculateYesFields);
+        fullTotalInput.addEventListener("change", recalculateYesFields);
+    }
+
+    if (discountInput) {
+        discountInput.addEventListener("input", recalculateYesFields);
+        discountInput.addEventListener("change", recalculateYesFields);
+    }
+
+    recalculateYesFields();
 }
 
 function initCalculator() {
-    const amount = document.getElementById("Amount");
-    const product = document.getElementById("Product");
+    const productInput = document.getElementById("Product");
+    const amountInput = document.getElementById("Amount");
     const ukSelect = document.getElementById("ukSelect");
+    const commissionInput = document.getElementById("Commission");
+    const suInput = document.getElementById("Su");
+    const commissionPercentInput = document.getElementById("CommissionPercent");
+    const dividerInput = document.getElementById("Divider");
 
-    const commission = document.getElementById("Commission");
-    const su = document.getElementById("Su");
-    const commissionPercent = document.getElementById("CommissionPercent");
-    const divider = document.getElementById("Divider");
-
-    if (!amount || !product || !commission || !su || !commissionPercent || !divider) return;
-
-    const calc = () => {
-        const val = parseHuNumber(amount.value);
-        const name = (product.value || "").toLowerCase();
-        const isUk = ukSelect ? ukSelect.value === "true" : false;
-
-        let currentDivider = 27500;
-        let currentPercent = 10;
-
-        if (name.includes("lakás")) {
-            currentDivider = 27500;
-            currentPercent = 10;
-        } else if (name.includes("kgfb")) {
-            currentDivider = 20000;
-            currentPercent = 12;
-        } else if (name.includes("casco")) {
-            currentDivider = 30000;
-            currentPercent = 15;
-        } else if (name.includes("vienna")) {
-            currentDivider = 25000;
-            currentPercent = 10;
-        } else if (name.includes("utas")) {
-            currentDivider = 15000;
-            currentPercent = 20;
-        }
-
-        let comm = val * (currentPercent / 100);
-        const suVal = currentDivider > 0 ? val / currentDivider : 0;
-
-        if (isUk && name.includes("vienna yes")) {
-            comm = 0;
-        }
-
-        commission.value = formatHu(comm, 0);
-        su.value = formatHu(suVal, 4);
-        commissionPercent.value = formatHu(currentPercent, 2);
-        divider.value = formatHu(currentDivider, 0);
-    };
-
-    amount.addEventListener("input", calc);
-    amount.addEventListener("change", calc);
-    product.addEventListener("change", calc);
-
-    if (ukSelect) {
-        ukSelect.addEventListener("change", calc);
+    if (!productInput || !amountInput || !window.productRules) {
+        return;
     }
 
-    calc();
+    const recalculate = () => {
+        const product = (productInput.value || "").trim();
+        const amount = parseHungarianNumber(amountInput.value);
+        const isUkContract = ukSelect ? (ukSelect.value === "true") : false;
+
+        clearOutput(commissionInput);
+        clearOutput(suInput);
+        clearOutput(commissionPercentInput);
+        clearOutput(dividerInput);
+
+        if (!product || amount <= 0) {
+            return;
+        }
+
+        const rule = window.productRules[product];
+        if (!rule) {
+            return;
+        }
+
+        let commission = 0;
+        let su = 0;
+        const divisor = Number(rule.divisor || 0);
+        const percentDecimal = Number(rule.percent || 0);
+        const percentDisplay = percentDecimal * 100;
+
+        if (divisor > 0) {
+            su = amount / divisor;
+        }
+
+        if (rule.mode === "percent") {
+            commission = amount * percentDecimal;
+        }
+
+        if (rule.requiresUkQuestion && isUkContract) {
+            commission = 0;
+        }
+
+        setOutput(commissionInput, commission, 0);
+        setOutput(suInput, su, 4);
+        setOutput(commissionPercentInput, percentDisplay, 2);
+        setOutput(dividerInput, divisor, 2);
+    };
+
+    productInput.addEventListener("change", recalculate);
+    amountInput.addEventListener("input", recalculate);
+    amountInput.addEventListener("change", recalculate);
+
+    if (ukSelect) {
+        ukSelect.addEventListener("change", recalculate);
+    }
+
+    recalculate();
 }
 
-function parseHuNumber(value) {
-    if (value === null || value === undefined) return 0;
+function parseHungarianNumber(value) {
+    if (!value) {
+        return 0;
+    }
 
-    let text = value.toString().trim();
-    if (!text) return 0;
+    let text = value.toString().trim().replace(/\s/g, "");
+    if (!text) {
+        return 0;
+    }
 
-    text = text.replace(/\s/g, "").replace(",", ".");
-    const number = Number(text);
+    const hasComma = text.includes(",");
+    const hasDot = text.includes(".");
 
-    return Number.isFinite(number) ? number : 0;
+    if (hasComma && hasDot) {
+        const lastComma = text.lastIndexOf(",");
+        const lastDot = text.lastIndexOf(".");
+
+        if (lastComma > lastDot) {
+            text = text.replace(/\./g, "").replace(",", ".");
+        } else {
+            text = text.replace(/,/g, "");
+        }
+    } else if (hasComma) {
+        text = text.replace(",", ".");
+    }
+
+    const parsed = Number(text);
+    return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function formatHu(value, decimals) {
-    return Number(value || 0).toLocaleString("hu-HU", {
+function setOutput(element, value, decimals) {
+    if (!element) return;
+    element.value = Number(value || 0).toLocaleString("hu-HU", {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals
     });
+}
+
+function clearOutput(element) {
+    if (!element) return;
+    element.value = "";
 }
