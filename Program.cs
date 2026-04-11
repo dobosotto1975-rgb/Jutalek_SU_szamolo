@@ -112,7 +112,30 @@ if (!usePostgres)
 }
 else
 {
-    Console.WriteLine("=== POSTGRES MODE: automatic migration skipped ===");
+    Console.WriteLine("=== POSTGRES MODE: schema sync start ===");
+
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        await db.Database.ExecuteSqlRawAsync("""
+            ALTER TABLE "MonthlyReports"
+            ADD COLUMN IF NOT EXISTS "ContractStartDate" timestamp without time zone NULL;
+            """);
+
+        await db.Database.ExecuteSqlRawAsync("""
+            ALTER TABLE "MonthlyReports"
+            ADD COLUMN IF NOT EXISTS "IsPremiumPaid" boolean NOT NULL DEFAULT FALSE;
+            """);
+
+        Console.WriteLine("=== POSTGRES MODE: schema sync OK ===");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("!!! POSTGRES SCHEMA SYNC ERROR !!!");
+        Console.WriteLine(ex);
+    }
 }
 
 if (!app.Environment.IsDevelopment())

@@ -202,6 +202,21 @@
                 <input asp-for="Divider" class="input-modern" id="Divider" readonly />
             </div>
 
+            <div class="form-group">
+                <label asp-for="ContractStartDate">Szerződés kezdete</label>
+                <input asp-for="ContractStartDate" class="input-modern" type="date" />
+                <span asp-validation-for="ContractStartDate" class="validation-text"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="IsPremiumPaid">Díjrendezett?</label>
+                <div style="display:flex;align-items:center;gap:10px;min-height:48px;">
+                    <input asp-for="IsPremiumPaid" type="checkbox" style="width:18px;height:18px;" />
+                    <span>Igen</span>
+                </div>
+                <span asp-validation-for="IsPremiumPaid" class="validation-text"></span>
+            </div>
+
             <div class="form-group full-width">
                 <label asp-for="Notes">Megjegyzés</label>
                 <textarea asp-for="Notes" class="input-modern" rows="4"></textarea>
