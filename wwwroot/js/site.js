@@ -66,15 +66,25 @@ function initCalculator() {
         let commission = 0;
         let su = 0;
 
-        const divisor = Number(rule.divisor || 0);
-        const percentValue = Number(rule.percent || 0);
+        const dividerRaw = rule.divider ?? rule.divisor ?? 0;
+        const dividerValue = Number(dividerRaw || 0);
 
-        if (divisor > 0) {
-            su = amount / divisor;
+        const rawPercentValue = Number(rule.percent || 0);
+
+        const displayPercentValue = rawPercentValue <= 1
+            ? rawPercentValue * 100
+            : rawPercentValue;
+
+        const commissionRate = rawPercentValue <= 1
+            ? rawPercentValue
+            : rawPercentValue / 100;
+
+        if (dividerValue > 0) {
+            su = amount / dividerValue;
         }
 
         if (rule.mode === "percent") {
-            commission = amount * (percentValue / 100);
+            commission = amount * commissionRate;
         }
 
         if (rule.requiresUkQuestion && isUkContract) {
@@ -83,8 +93,8 @@ function initCalculator() {
 
         setOutput(commissionInput, commission, 0);
         setOutput(suInput, su, 4);
-        setOutput(commissionPercentInput, percentValue, 2);
-        setOutput(dividerInput, divisor, 2);
+        setOutput(commissionPercentInput, displayPercentValue, 2);
+        setOutput(dividerInput, dividerValue, 0);
     };
 
     productInput.addEventListener("change", recalculate);
