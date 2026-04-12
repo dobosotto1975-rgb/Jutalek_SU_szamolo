@@ -728,3 +728,17 @@ textarea {
         gap: 12px;
     }
 }
+.actions-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 170px;
+}
+
+    .actions-cell .btn-edit-sm,
+    .actions-cell .btn-danger-sm {
+        min-width: 92px;
+        text-align: center;
+        text-decoration: none;
+    }

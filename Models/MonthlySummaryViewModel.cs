@@ -33,6 +33,7 @@ public class AdvisorMonthlySummaryFilterViewModel
     public decimal TotalMonthlyAmount { get; set; }
     public decimal TotalCumulativeAmount { get; set; }
     public decimal TotalMonthlySu { get; set; }
+    public decimal TotalCumulativeSu { get; set; }
     public decimal TotalBaseCommission { get; set; }
     public decimal TotalBonusAmount { get; set; }
     public decimal TotalFinalCommission { get; set; }
@@ -48,6 +49,7 @@ public class AdvisorMonthlySummaryRow
     public decimal MonthlyAmount { get; set; }
     public decimal CumulativeAmount { get; set; }
     public decimal MonthlySu { get; set; }
+    public decimal CumulativeSu { get; set; }
 
     public decimal BaseCommission { get; set; }
     public decimal BonusAmount { get; set; }

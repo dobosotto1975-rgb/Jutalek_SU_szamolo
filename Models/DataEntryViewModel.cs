@@ -18,7 +18,7 @@ public class DataEntryViewModel : IValidatableObject
     [Required(ErrorMessage = "A termék kiválasztása kötelező.")]
     public string Product { get; set; } = string.Empty;
 
-    [Range(typeof(decimal), "0.01", "999999999", ErrorMessage = "Az állománydíj legyen nagyobb mint 0.")]
+    [Range(typeof(decimal), "0,01", "999999999", ErrorMessage = "Az állománydíj legyen nagyobb mint 0.")]
     public decimal Amount { get; set; }
 
     public bool IsUkContract { get; set; }

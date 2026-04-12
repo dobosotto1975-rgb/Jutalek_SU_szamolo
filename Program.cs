@@ -7,7 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 Console.WriteLine("=== APP STARTING ===");
 
-// PORT kezelés
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))
 {
@@ -20,61 +19,6 @@ else
 }
 
 builder.Services.AddControllersWithViews();
-
-// Connection string logika
-var renderDatabaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-var postgresConnection = builder.Configuration.GetConnectionString("PostgresConnection");
-
-// A SQLite fájlt fixen a projekt/content root mappába tesszük
-var sqliteFilePath = Path.Combine(builder.Environment.ContentRootPath, "advisor_dashboard.db");
-var sqliteConnection = $"Data Source={sqliteFilePath}";
-
-Console.WriteLine($"ContentRootPath: {builder.Environment.ContentRootPath}");
-Console.WriteLine($"SQLite file path: {sqliteFilePath}");
-
-string finalConnectionString;
-bool usePostgres;
-
-try
-{
-    if (!string.IsNullOrWhiteSpace(renderDatabaseUrl))
-    {
-        Console.WriteLine("Using DATABASE_URL from environment.");
-        finalConnectionString = BuildRenderPostgresConnectionString(renderDatabaseUrl);
-        usePostgres = true;
-    }
-    else if (!string.IsNullOrWhiteSpace(postgresConnection))
-    {
-        Console.WriteLine("Using PostgresConnection from configuration.");
-        finalConnectionString = postgresConnection;
-        usePostgres = true;
-    }
-    else
-    {
-        Console.WriteLine("Using SQLite with absolute file path.");
-        finalConnectionString = sqliteConnection;
-        usePostgres = false;
-    }
-}
-catch (Exception ex)
-{
-    Console.WriteLine("!!! CONNECTION STRING ERROR !!!");
-    Console.WriteLine(ex);
-    throw;
-}
-
-// DB konfiguráció
-if (usePostgres)
-{
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(finalConnectionString));
-}
-else
-{
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlite(finalConnectionString));
-}
-
 builder.Services.AddScoped<IProductCalculationService, ProductCalculationService>();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -87,71 +31,52 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
+var connectionInfo = ResolveDatabaseConfiguration(builder.Configuration, builder.Environment);
+
+Console.WriteLine($"ContentRootPath: {builder.Environment.ContentRootPath}");
+Console.WriteLine($"Database provider: {(connectionInfo.UsePostgres ? "PostgreSQL" : "SQLite")}");
+Console.WriteLine($"Connection source: {connectionInfo.Source}");
+
+if (connectionInfo.UsePostgres)
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(connectionInfo.ConnectionString));
+}
+else
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(connectionInfo.ConnectionString));
+}
+
 var app = builder.Build();
 
 Console.WriteLine("=== BUILD OK ===");
 
 app.UseForwardedHeaders();
 
-// SQLITE migráció helyben
-if (!usePostgres)
+try
 {
-    try
-    {
-        using var scope = app.Services.CreateScope();
-        Console.WriteLine("=== DB MIGRATION START ===");
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Database.Migrate();
-        Console.WriteLine("=== DB MIGRATION OK ===");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("!!! MIGRATION ERROR (APP STILL RUNS) !!!");
-        Console.WriteLine(ex);
-    }
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    Console.WriteLine("=== DB MIGRATION START ===");
+    db.Database.Migrate();
+    Console.WriteLine("=== DB MIGRATION OK ===");
 }
-else
+catch (Exception ex)
 {
-    Console.WriteLine("=== POSTGRES MODE: schema sync start ===");
-
-    try
-    {
-        using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        await db.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE "MonthlyReports"
-            ADD COLUMN IF NOT EXISTS "ContractStartDate" timestamp without time zone NULL;
-            """);
-
-        await db.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE "MonthlyReports"
-            ADD COLUMN IF NOT EXISTS "IsPremiumPaid" boolean NOT NULL DEFAULT FALSE;
-            """);
-
-        Console.WriteLine("=== POSTGRES MODE: schema sync OK ===");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("!!! POSTGRES SCHEMA SYNC ERROR !!!");
-        Console.WriteLine(ex);
-    }
+    Console.WriteLine("!!! DB MIGRATION ERROR !!!");
+    Console.WriteLine(ex);
 }
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
-}
-
-// Renderen nincs szükség kötelező https redirectre reverse proxy mögött
-if (!usePostgres)
-{
     app.UseHttpsRedirection();
 }
 
 app.UseStaticFiles();
-
 app.UseRouting();
 app.UseAuthorization();
 
@@ -166,16 +91,77 @@ Console.WriteLine("=== APP RUNNING ===");
 
 app.Run();
 
-static string BuildRenderPostgresConnectionString(string databaseUrl)
+static DatabaseConnectionInfo ResolveDatabaseConfiguration(IConfiguration configuration, IWebHostEnvironment environment)
 {
+    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+    if (!string.IsNullOrWhiteSpace(databaseUrl))
+    {
+        return new DatabaseConnectionInfo
+        {
+            UsePostgres = true,
+            Source = "DATABASE_URL",
+            ConnectionString = BuildPostgresConnectionStringFromUrl(databaseUrl)
+        };
+    }
+
+    var postgresConnection =
+        configuration.GetConnectionString("PostgresConnection") ??
+        configuration.GetConnectionString("DefaultConnection");
+
+    if (!string.IsNullOrWhiteSpace(postgresConnection) &&
+        LooksLikePostgresConnection(postgresConnection))
+    {
+        return new DatabaseConnectionInfo
+        {
+            UsePostgres = true,
+            Source = "appsettings PostgresConnection/DefaultConnection",
+            ConnectionString = postgresConnection
+        };
+    }
+
+    var sqliteFilePath = Path.Combine(environment.ContentRootPath, "advisor_dashboard.db");
+    var sqliteConnection = $"Data Source={sqliteFilePath}";
+
+    return new DatabaseConnectionInfo
+    {
+        UsePostgres = false,
+        Source = "local SQLite fallback",
+        ConnectionString = sqliteConnection
+    };
+}
+
+static bool LooksLikePostgresConnection(string connectionString)
+{
+    var text = connectionString.ToLowerInvariant();
+
+    return text.Contains("host=") ||
+           text.Contains("server=") ||
+           text.Contains("username=") ||
+           text.Contains("user id=") ||
+           text.Contains("database=");
+}
+
+static string BuildPostgresConnectionStringFromUrl(string databaseUrl)
+{
+    if (databaseUrl.StartsWith("Host=", StringComparison.OrdinalIgnoreCase))
+    {
+        return databaseUrl;
+    }
+
     var uri = new Uri(databaseUrl);
 
     var userInfoParts = uri.UserInfo.Split(':', 2);
-    var username = userInfoParts.Length > 0 ? Uri.UnescapeDataString(userInfoParts[0]) : "";
-    var password = userInfoParts.Length > 1 ? Uri.UnescapeDataString(userInfoParts[1]) : "";
-
+    var username = userInfoParts.Length > 0 ? Uri.UnescapeDataString(userInfoParts[0]) : string.Empty;
+    var password = userInfoParts.Length > 1 ? Uri.UnescapeDataString(userInfoParts[1]) : string.Empty;
     var database = uri.AbsolutePath.TrimStart('/');
     var dbPort = uri.Port > 0 ? uri.Port : 5432;
 
     return $"Host={uri.Host};Port={dbPort};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+}
+
+sealed class DatabaseConnectionInfo
+{
+    public bool UsePostgres { get; set; }
+    public string Source { get; set; } = string.Empty;
+    public string ConnectionString { get; set; } = string.Empty;
 }

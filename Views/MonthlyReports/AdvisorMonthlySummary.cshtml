@@ -127,7 +127,7 @@
 
     .summary-stats-grid {
         display: grid;
-        grid-template-columns: repeat(7, minmax(0, 1fr));
+        grid-template-columns: repeat(8, minmax(0, 1fr));
         gap: 16px;
     }
 
@@ -173,7 +173,7 @@
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
-        min-width: 1180px;
+        min-width: 1320px;
     }
 
         .summary-table thead th {
@@ -305,7 +305,7 @@
 <div class="summary-page">
     <section class="summary-hero">
         <h1 class="summary-title">Tanácsadónkénti havi összesítés</h1>
-        <p class="summary-subtitle">Szűrés tanácsadóra, évre és hónapra, havi és teljes állománydíj követéssel.</p>
+        <p class="summary-subtitle">Szűrés tanácsadóra, évre és hónapra, havi és teljes állománydíj és SU követéssel.</p>
     </section>
 
     <section class="summary-filter-card">
@@ -348,8 +348,13 @@
         </div>
 
         <div class="summary-stat-card">
-            <div class="summary-stat-label">Összes SU</div>
+            <div class="summary-stat-label">Havi SU</div>
             <div class="summary-stat-value">@Model.TotalMonthlySu.ToString("N2")</div>
+        </div>
+
+        <div class="summary-stat-card">
+            <div class="summary-stat-label">Összesített SU</div>
+            <div class="summary-stat-value">@Model.TotalCumulativeSu.ToString("N2")</div>
         </div>
 
         <div class="summary-stat-card">
@@ -379,7 +384,8 @@
                             <th>Bejegyzések</th>
                             <th>Havi állománydíj</th>
                             <th>Összesített állománydíj</th>
-                            <th>SU</th>
+                            <th>Havi SU</th>
+                            <th>Összesített SU</th>
                             <th>Alapjutalék</th>
                             <th>Bónusz sáv</th>
                             <th>Bónusz</th>
@@ -395,6 +401,7 @@
                                 <td>@row.MonthlyAmount.ToString("N0") Ft</td>
                                 <td><strong>@row.CumulativeAmount.ToString("N0") Ft</strong></td>
                                 <td>@row.MonthlySu.ToString("N2")</td>
+                                <td><strong>@row.CumulativeSu.ToString("N2")</strong></td>
                                 <td>@row.BaseCommission.ToString("N0") Ft</td>
                                 <td>
                                     <span class="summary-bonus-pill">@row.BonusLabel</span>
@@ -411,6 +418,7 @@
                             <th>@Model.TotalMonthlyAmount.ToString("N0") Ft</th>
                             <th>@Model.TotalCumulativeAmount.ToString("N0") Ft</th>
                             <th>@Model.TotalMonthlySu.ToString("N2")</th>
+                            <th>@Model.TotalCumulativeSu.ToString("N2")</th>
                             <th>@Model.TotalBaseCommission.ToString("N0") Ft</th>
                             <th>-</th>
                             <th>@Model.TotalBonusAmount.ToString("N0") Ft</th>

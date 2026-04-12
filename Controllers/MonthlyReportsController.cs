@@ -227,6 +227,13 @@ public class MonthlyReportsController : Controller
                 g => g.Sum(x => x.Amount)
             );
 
+        var cumulativeSuByAdvisor = allReports
+            .GroupBy(x => x.AdvisorId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Sum(x => x.Su)
+            );
+
         var rows = filteredReports
             .GroupBy(x => new
             {
@@ -254,6 +261,10 @@ public class MonthlyReportsController : Controller
                     ? totalAmount
                     : 0m;
 
+                var cumulativeSu = cumulativeSuByAdvisor.TryGetValue(g.Key.AdvisorId, out var totalSu)
+                    ? totalSu
+                    : 0m;
+
                 return new AdvisorMonthlySummaryRow
                 {
                     AdvisorId = g.Key.AdvisorId,
@@ -262,6 +273,7 @@ public class MonthlyReportsController : Controller
                     MonthlyAmount = monthlyAmount,
                     CumulativeAmount = cumulativeAmount,
                     MonthlySu = monthlySu,
+                    CumulativeSu = cumulativeSu,
                     BaseCommission = baseCommission,
                     BonusAmount = bonusAmount,
                     FinalCommission = baseCommission + bonusAmount
@@ -314,6 +326,7 @@ public class MonthlyReportsController : Controller
             TotalMonthlyAmount = rows.Sum(x => x.MonthlyAmount),
             TotalCumulativeAmount = rows.Sum(x => x.CumulativeAmount),
             TotalMonthlySu = rows.Sum(x => x.MonthlySu),
+            TotalCumulativeSu = rows.Sum(x => x.CumulativeSu),
             TotalBaseCommission = rows.Sum(x => x.BaseCommission),
             TotalBonusAmount = rows.Sum(x => x.BonusAmount),
             TotalFinalCommission = rows.Sum(x => x.FinalCommission)

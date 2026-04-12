@@ -1,6 +1,8 @@
 bin/
 obj/
 .vs/
+.git/
+.github/
 publish/
 out/
 
@@ -14,9 +16,5 @@ out/
 
 .env
 .env.*
-appsettings.*.local.json
 
-node_modules/
-
-.git/
 Jutalek_SU_szamolo/
