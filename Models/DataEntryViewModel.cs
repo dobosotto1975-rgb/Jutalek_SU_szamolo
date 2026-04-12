@@ -18,7 +18,6 @@ public class DataEntryViewModel : IValidatableObject
     [Required(ErrorMessage = "A termék kiválasztása kötelező.")]
     public string Product { get; set; } = string.Empty;
 
-    [Range(typeof(decimal), "0,01", "999999999", ErrorMessage = "Az állománydíj legyen nagyobb mint 0.")]
     public decimal Amount { get; set; }
 
     public bool IsUkContract { get; set; }
@@ -36,7 +35,7 @@ public class DataEntryViewModel : IValidatableObject
     public decimal? YesFullBaseAmount { get; set; }
     public decimal? YesFullTotalAmount { get; set; }
 
-    [Range(typeof(decimal), "0", "100", ErrorMessage = "A kedvezmény % 0 és 100 között lehet.")]
+    [Range(typeof(double), "0", "100", ErrorMessage = "A kedvezmény % 0 és 100 között lehet.")]
     public decimal? YesDiscountPercent { get; set; }
 
     public decimal YesFullSupplementAmount { get; set; }
@@ -56,12 +55,40 @@ public class DataEntryViewModel : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        if (AdvisorId <= 0)
+        {
+            yield return new ValidationResult(
+                "A tanácsadó kiválasztása kötelező.",
+                new[] { nameof(AdvisorId) });
+        }
+
+        if (Year < 2020 || Year > 2100)
+        {
+            yield return new ValidationResult(
+                "Adj meg egy érvényes évet.",
+                new[] { nameof(Year) });
+        }
+
+        if (Month < 1 || Month > 12)
+        {
+            yield return new ValidationResult(
+                "A hónap kiválasztása kötelező.",
+                new[] { nameof(Month) });
+        }
+
         if (string.IsNullOrWhiteSpace(Product))
         {
             yield return new ValidationResult(
                 "A termék kiválasztása kötelező.",
                 new[] { nameof(Product) });
             yield break;
+        }
+
+        if (Amount <= 0)
+        {
+            yield return new ValidationResult(
+                "Az állománydíj legyen nagyobb mint 0.",
+                new[] { nameof(Amount) });
         }
 
         var canonicalProduct = ProductCatalog.GetDisplayLabel(Product);
