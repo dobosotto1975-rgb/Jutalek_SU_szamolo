@@ -22,14 +22,14 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore
-        run: dotnet restore AdvisorDashboardApp/AdvisorDashboardApp.csproj
+     - name: Restore
+  run: dotnet restore AdvisorDashboardApp.csproj
 
-      - name: Build
-        run: dotnet build AdvisorDashboardApp/AdvisorDashboardApp.csproj -c Release --no-restore
+- name: Build
+  run: dotnet build AdvisorDashboardApp.csproj -c Release --no-restore
 
-      - name: Publish
-        run: dotnet publish AdvisorDashboardApp/AdvisorDashboardApp.csproj -c Release -o ./publish --no-build
+- name: Publish
+  run: dotnet publish AdvisorDashboardApp.csproj -c Release -o ./publish --no-build
 
       - name: Tar létrehozása
         run: tar -czf publish.tar.gz -C ./publish .
