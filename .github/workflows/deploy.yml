@@ -1,0 +1,67 @@
+name: Deploy AdvisorDashboardApp to VPS via SSH
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: advisordashboard-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repo letöltése
+        uses: actions/checkout@v4
+
+      - name: .NET 8 beállítása
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore AdvisorDashboardApp/AdvisorDashboardApp.csproj
+
+      - name: Build
+        run: dotnet build AdvisorDashboardApp/AdvisorDashboardApp.csproj -c Release --no-restore
+
+      - name: Publish
+        run: dotnet publish AdvisorDashboardApp/AdvisorDashboardApp.csproj -c Release -o ./publish --no-build
+
+      - name: Tar létrehozása
+        run: tar -czf publish.tar.gz -C ./publish .
+
+      - name: Publish csomag feltöltése a VPS-re
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "publish.tar.gz"
+          target: "/opt/advisordashboard/incoming"
+
+      - name: Kicsomagolás és deploy a VPS-en
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            rm -rf /opt/advisordashboard/incoming/publish-extracted
+            mkdir -p /opt/advisordashboard/incoming/publish-extracted
+            tar -xzf /opt/advisordashboard/incoming/publish.tar.gz -C /opt/advisordashboard/incoming/publish-extracted
+            rm -f /opt/advisordashboard/incoming/publish.tar.gz
+            /opt/advisordashboard/deploy.sh /opt/advisordashboard/incoming/publish-extracted
+
+      - name: Service ellenőrzés
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            sudo systemctl status crm.service --no-pager
